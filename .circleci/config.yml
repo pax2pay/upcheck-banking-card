@@ -74,7 +74,7 @@ jobs:
           event: pass
           template: basic_success_1
 workflows:
-  paxshop:
+  pax2pay-banking-card:
     triggers:
       - schedule:
           cron: "7,17,27,47,57 * * * *"
