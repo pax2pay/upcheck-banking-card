@@ -1,11 +1,7 @@
 {
 	"files.exclude": {
-		".eslint*": true,
-		".editorconfig": true,
-		".npm*": true,
-		".vscode*": true,
-		".git*": true,
-		".prettier*": true,
+		".*": true,
+		"*.json": true,
 		"CODEOWNERS": true,
 		"dist": true,
 		"README.md": true,
