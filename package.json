@@ -1,6 +1,6 @@
 {
 	"name": "@utily/library-template",
-	"version": "0.0.16",
+	"version": "0.0.17",
 	"description": "Template library for Typescript.",
 	"author": "Utily Contributors",
 	"license": "MIT",
@@ -67,8 +67,7 @@
 		"ts-jest": "^29.1.0",
 		"typescript": "^5.0.3"
 	},
-	"dependencies": {
-	},
+	"dependencies": {},
 	"overrides": {
 		"semver": "7.5.3",
 		"optionator": "0.9.3"
