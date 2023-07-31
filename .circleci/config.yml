@@ -74,7 +74,6 @@ jobs:
           event: pass
           template: basic_success_1
 workflows:
-  version: 2.1
   paxshop:
     triggers:
       - schedule:
@@ -93,7 +92,7 @@ workflows:
             branches:
               only: master
     jobs:
-      -pax2pay-banking-card-api-quiet
+      - pax2pay-banking-card-api-quiet
   daily:
     triggers:
       - schedule:
@@ -102,7 +101,7 @@ workflows:
             branches:
               only: master
     jobs:
-      -pax2pay-banking-card-api-notify
+      - pax2pay-banking-card-api-notify
   build:
     jobs:
-      -pax2pay-banking-card-api-notify
+      - pax2pay-banking-card-api-notify
