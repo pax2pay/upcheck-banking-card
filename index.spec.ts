@@ -5,7 +5,7 @@ import * as dotenv from "dotenv"
 dotenv.config()
 
 const creatable: pax2pay.Card.Creatable = {
-	account: "jJOCImei",
+	account: "lgFWzV9m",
 	details: { expiry: [26, 12], holder: "Upcheck", iin: "411111" },
 	limit: ["GBP", 1000],
 	preset: "p2p-ta-pg-200",
