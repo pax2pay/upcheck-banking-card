@@ -51,8 +51,11 @@
 		"prepare": "npm run build",
 		"clean": "rimraf dist node_modules coverage"
 	},
+	"overrides": {
+		"semver": "7.5.3",
+		"optionator": "0.9.3"
+	},
 	"devDependencies": {
-		"@pax2pay/model-banking": "0.1.94",
 		"@types/jest": "^29.5.0",
 		"@typescript-eslint/eslint-plugin": "5.60.1",
 		"@typescript-eslint/parser": "5.60.1",
@@ -67,9 +70,9 @@
 		"ts-jest": "^29.1.0",
 		"typescript": "^5.0.3"
 	},
-	"dependencies": {},
-	"overrides": {
-		"semver": "7.5.3",
-		"optionator": "0.9.3"
+	"dependencies": {
+		"cloudly-http": "^0.1.6",
+		"@pax2pay/model-banking": "0.1.98",
+		"gracely": "2.0.4"
 	}
 }
