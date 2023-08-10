@@ -29,7 +29,8 @@ describe("pax2pay.Card", () => {
 				limit: ["USD", amount],
 			})
 			.then(r => (gracely.Error.is(r) ? undefined : r))
-		expect(pax2pay.Card.is(updated) && updated.limit[1] == amount).toBeTruthy()
+		expect(pax2pay.Card.is(updated)).toBeTruthy()
+		expect(updated?.limit[1]).toEqual(amount)
 	})
 })
 
