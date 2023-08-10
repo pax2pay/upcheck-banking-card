@@ -10,24 +10,23 @@ const client =
 		? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
 		: undefined
 
-describe("pax2pay.100", () => {
-	let authorization1: pax2pay.Authorization | undefined
-	let authorization2: pax2pay.Authorization | undefined
+describe("pax2pay.Authorization", () => {
+	let authorization: pax2pay.Authorization | undefined
+	let failedAuthorization: pax2pay.Authorization | undefined
 	beforeAll(async () => {
-		authorization1 = await client?.post<pax2pay.Authorization>("/authorization", creatable1)
-		authorization2 = await client?.post<pax2pay.Authorization>("/authorization", creatable2)
+		authorization = await client?.post<pax2pay.Authorization>("/authorization", creatable)
+		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", failedCreatable)
 	})
 	it("create succeeded", () => {
-		expect(authorization1?.status == "approved").toBeTruthy()
+		expect(pax2pay.Authorization.is(authorization))
+		expect(authorization?.status).toEqual("approved")
 	})
 	it("create failed", () => {
-		expect(authorization2?.status != "approved").toBeTruthy()
-	})
-	it("create failed", () => {
-		expect(false).toBeFalsy()
+		expect(failedAuthorization?.status).not.toEqual("approved")
 	})
 })
-const creatable1: pax2pay.Authorization.Creatable = {
+
+const creatable: pax2pay.Authorization.Creatable = {
 	card: "46V8JcZ0",
 	amount: ["USD", 1],
 	merchant: {
@@ -44,7 +43,7 @@ const creatable1: pax2pay.Authorization.Creatable = {
 	},
 	description: "An upcheck test authorization, to succeed",
 }
-const creatable2: pax2pay.Authorization.Creatable = {
+const failedCreatable: pax2pay.Authorization.Creatable = {
 	card: "46V8JcZ0",
 	amount: ["USD", 1],
 	merchant: {
