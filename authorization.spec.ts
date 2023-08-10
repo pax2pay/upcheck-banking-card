@@ -15,6 +15,7 @@ describe("pax2pay.Authorization", () => {
 	let failedAuthorization: pax2pay.Authorization | undefined
 	beforeAll(async () => {
 		authorization = await client?.post<pax2pay.Authorization>("/authorization", creatable)
+		console.log("authorization", authorization)
 		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", failedCreatable)
 	})
 	it("create succeeded", () => {
@@ -27,7 +28,7 @@ describe("pax2pay.Authorization", () => {
 })
 
 const creatable: pax2pay.Authorization.Creatable = {
-	card: "46V8JcZ0",
+	card: "zzzzztgfIFvzR0b_",
 	amount: ["USD", 1],
 	merchant: {
 		name: "Merchant",
@@ -44,7 +45,7 @@ const creatable: pax2pay.Authorization.Creatable = {
 	description: "An upcheck test authorization, to succeed",
 }
 const failedCreatable: pax2pay.Authorization.Creatable = {
-	card: "46V8JcZ0",
+	card: "zzzzztgfIFvzR0b_",
 	amount: ["USD", 1],
 	merchant: {
 		name: "Merchant",

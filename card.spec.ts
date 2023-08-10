@@ -11,10 +11,12 @@ client && (client.organization = "Y2TgAgLN")
 
 describe("pax2pay.Card", () => {
 	let card: gracely.Error | pax2pay.Card | undefined
-	let fetched: pax2pay.Card | undefined
+	let fetched: pax2pay.Card | undefined | gracely.Error
 	beforeAll(async () => {
 		card = await client?.cards.create(creatable)
-		fetched = await client?.cards.fetch(id).then(r => (gracely.Error.is(r) ? undefined : r))
+		console.log("card", card)
+		fetched = await client?.cards.fetch(id)
+		console.log("fetched", fetched)
 	})
 	it("create", () => {
 		expect(pax2pay.Card.is(card)).toBeTruthy()
@@ -23,9 +25,9 @@ describe("pax2pay.Card", () => {
 		expect(pax2pay.Card.is(fetched)).toBeTruthy()
 	})
 	it("update", async () => {
-		const amount = fetched?.limit[1] == 2000 ? 1000 : 2000
+		const amount = pax2pay.Card.is(fetched) && fetched?.limit[1] == 2000 ? 1000 : 2000
 		const updated = await client?.cards
-			.update(fetched?.id ?? id, {
+			.update(id, {
 				limit: ["USD", amount],
 			})
 			.then(r => (gracely.Error.is(r) ? undefined : r))
@@ -34,7 +36,7 @@ describe("pax2pay.Card", () => {
 	})
 })
 
-const id = "03s9NKVp"
+const id = "zzzzztgfIFvzR0b_"
 const creatable: pax2pay.Card.Creatable = {
 	account: "0qbsfo2j",
 	details: { expiry: [26, 12], holder: "Upcheck", iin: "411111" },
