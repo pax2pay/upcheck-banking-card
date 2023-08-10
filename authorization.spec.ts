@@ -27,7 +27,7 @@ describe("pax2pay.Authorization", () => {
 })
 
 const creatable: pax2pay.Authorization.Creatable = {
-	card: "46V8JcZ0",
+	card: "zzzzztgfIFvzR0b_",
 	amount: ["USD", 1],
 	merchant: {
 		name: "Merchant",
@@ -44,7 +44,7 @@ const creatable: pax2pay.Authorization.Creatable = {
 	description: "An upcheck test authorization, to succeed",
 }
 const failedCreatable: pax2pay.Authorization.Creatable = {
-	card: "46V8JcZ0",
+	card: "zzzzztgfIFvzR0b_",
 	amount: ["USD", 1],
 	merchant: {
 		name: "Merchant",
