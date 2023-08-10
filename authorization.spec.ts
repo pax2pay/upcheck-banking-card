@@ -15,6 +15,7 @@ describe("pax2pay.Authorization", () => {
 	let failedAuthorization: pax2pay.Authorization | undefined
 	beforeAll(async () => {
 		authorization = await client?.post<pax2pay.Authorization>("/authorization", creatable)
+		console.log("authorization", authorization)
 		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", failedCreatable)
 	})
 	it("create succeeded", () => {
