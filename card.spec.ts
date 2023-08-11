@@ -7,7 +7,7 @@ dotenv.config()
 
 const client = process.env.url && process.env.key ? pax2pay.Client.create(process.env.url, process.env.key) : undefined
 client && (client.realm = "test")
-client && (client.organization = "Y2TgAgLN")
+client && (client.organization = "agpiPo0v")
 
 describe("pax2pay.Card", () => {
 	let card: gracely.Error | pax2pay.Card | undefined
@@ -38,7 +38,7 @@ describe("pax2pay.Card", () => {
 
 const id = "zzzzztgfIFvzR0b_"
 const creatable: pax2pay.Card.Creatable = {
-	account: "0qbsfo2j",
+	account: "WzauRHBO",
 	details: { expiry: [26, 12], holder: "Upcheck", iin: "411111" },
 	limit: ["USD", 1000],
 	preset: "p2p-ta-pg-200",
