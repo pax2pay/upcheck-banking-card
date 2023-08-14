@@ -36,7 +36,7 @@ describe("pax2pay.Card", () => {
 	})
 })
 
-const id = "zzzzztgfIFvzR0b_"
+const id = "zzzzztga8AbYMRkI"
 const creatable: pax2pay.Card.Creatable = {
 	account: "WzauRHBO",
 	details: { expiry: [26, 12], holder: "Upcheck", iin: "411111" },

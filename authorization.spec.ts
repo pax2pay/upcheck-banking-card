@@ -1,3 +1,4 @@
+import { gracely } from "gracely"
 import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import { http } from "cloudly-http"
@@ -9,14 +10,18 @@ const client =
 	process.env.paxgiroUrl && process.env.paxgiroAuth
 		? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
 		: undefined
-
+const pax2payClient =
+	process.env.url && process.env.key ? pax2pay.Client.create(process.env.url, process.env.key) : undefined
+pax2payClient && (pax2payClient.realm = "test")
+pax2payClient && (pax2payClient.organization = "agpiPo0v")
 describe("pax2pay.Authorization", () => {
 	let authorization: pax2pay.Authorization | undefined
 	let failedAuthorization: pax2pay.Authorization | undefined
 	beforeAll(async () => {
-		authorization = await client?.post<pax2pay.Authorization>("/authorization", creatable)
+		const card = await pax2payClient?.cards.list().then(r => (gracely.Error.is(r) ? undefined : r[1].id))
+		authorization = await client?.post<pax2pay.Authorization>("/authorization", { ...creatable, card })
 		console.log("authorization", authorization)
-		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", failedCreatable)
+		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", { ...failedCreatable, card })
 	})
 	it("create succeeded", () => {
 		expect(pax2pay.Authorization.is(authorization))
@@ -27,8 +32,7 @@ describe("pax2pay.Authorization", () => {
 	})
 })
 
-const creatable: pax2pay.Authorization.Creatable = {
-	card: "zzzzztgdunMKF7ur",
+const creatable: Omit<pax2pay.Authorization.Creatable, "card"> = {
 	amount: ["USD", 1],
 	merchant: {
 		name: "Merchant",
@@ -44,8 +48,7 @@ const creatable: pax2pay.Authorization.Creatable = {
 	},
 	description: "An upcheck test authorization, to succeed",
 }
-const failedCreatable: pax2pay.Authorization.Creatable = {
-	card: "zzzzztgdunMKF7ur",
+const failedCreatable: Omit<pax2pay.Authorization.Creatable, "card"> = {
 	amount: ["USD", 1],
 	merchant: {
 		name: "Merchant",
