@@ -20,6 +20,11 @@ describe("pax2pay.Authorization", () => {
 	beforeAll(async () => {
 		const card = await pax2payClient?.cards.list().then(r => (gracely.Error.is(r) ? undefined : r[1].id))
 		authorization = await client?.post<pax2pay.Authorization>("/authorization", { ...creatable, card })
+		await client?.post<pax2pay.Authorization>("/authorization", {
+			...creatable,
+			card,
+			amount: [creatable.amount[0], -creatable.amount[1]],
+		}) // This is to revert the effect the authorization has on the account.
 		console.log("authorization", authorization)
 		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", { ...failedCreatable, card })
 	})
