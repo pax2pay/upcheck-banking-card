@@ -30,13 +30,13 @@ describe("pax2pay.Card", () => {
 			.update(id, {
 				limit: ["USD", amount],
 			})
-			.then(r => (gracely.Error.is(r) ? undefined : r))
+			.then(r => (gracely.Error.is(r) ? console.log("updated: ", r) : r))
 		expect(pax2pay.Card.is(updated)).toBeTruthy()
 		expect(updated?.limit[1]).toEqual(amount)
 	})
 })
 
-const id = "zzzzztga8AbYMRkI"
+const id = "zzzzztgZcZbZZAy8"
 const creatable: pax2pay.Card.Creatable = {
 	account: "WzauRHBO",
 	details: { expiry: [26, 12], holder: "Upcheck", iin: "411111" },
