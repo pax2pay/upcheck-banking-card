@@ -10,13 +10,17 @@ client && (client.realm = "test")
 client && (client.organization = "agpiPo0v")
 
 describe("pax2pay.Card", () => {
-	let card: gracely.Error | pax2pay.Card | undefined
+	let card: pax2pay.Card
 	let fetched: pax2pay.Card | undefined | gracely.Error
 	beforeAll(async () => {
-		card = await client?.cards.create(creatable)
-		console.log("card", card)
-		fetched = await client?.cards.fetch(id)
-		console.log("fetched", fetched)
+		const created = await client?.cards.create(creatable)
+		if (!created || gracely.Error.is(created))
+			console.log("created", created)
+		else {
+			card = created
+			fetched = await client?.cards.fetch(card.id)
+			console.log("fetched", fetched)
+		}
 	})
 	it("create", () => {
 		expect(pax2pay.Card.is(card)).toBeTruthy()
@@ -25,21 +29,20 @@ describe("pax2pay.Card", () => {
 		expect(pax2pay.Card.is(fetched)).toBeTruthy()
 	})
 	it("update", async () => {
-		const amount = pax2pay.Card.is(fetched) && fetched?.limit[1] == 2000 ? 1000 : 2000
+		const amount = 2000
 		const updated = await client?.cards
-			.update(id, {
+			.update(card.id, {
 				limit: ["USD", amount],
 			})
-			.then(r => (gracely.Error.is(r) ? console.log("updated: ", r) : r))
+			.then(r => (gracely.Error.is(r) ? (console.log("updated: ", r), undefined) : r))
 		expect(pax2pay.Card.is(updated)).toBeTruthy()
 		expect(updated?.limit[1]).toEqual(amount)
 	})
 })
 
-const id = "zzzzztgZcZbZZAy8"
 const creatable: pax2pay.Card.Creatable = {
 	account: "WzauRHBO",
-	details: { expiry: [26, 12], holder: "Upcheck", iin: "411111" },
+	details: { expiry: [26, 12], holder: "Upcheck" },
 	limit: ["USD", 1000],
 	preset: "p2p-ta-pg-200",
 	rules: [],
