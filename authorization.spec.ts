@@ -44,6 +44,8 @@ const creatable: Omit<pax2pay.Authorization.Creatable, "card" | "reference"> = {
 		id: "abcd1234",
 		category: "4511",
 		country: "GB",
+		city: "upcheck town",
+		zip: "12345",
 		address: "Streetname 1, 12345 Towncity",
 	},
 	acquirer: {
@@ -60,6 +62,8 @@ const failedCreatable: Omit<pax2pay.Authorization.Creatable, "card" | "reference
 		id: "abcd1234",
 		category: "4511",
 		country: "KP",
+		city: "upcheck town",
+		zip: "12345",
 		address: "Streetname 1, 12345 Towncity",
 	},
 	acquirer: {
