@@ -5,7 +5,7 @@ import { http } from "cloudly-http"
 import * as dotenv from "dotenv"
 
 dotenv.config()
-
+jest.setTimeout(15000)
 const client =
 	process.env.paxgiroUrl && process.env.paxgiroAuth
 		? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
