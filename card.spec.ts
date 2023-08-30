@@ -44,6 +44,6 @@ const creatable: pax2pay.Card.Creatable = {
 	account: "WzauRHBO",
 	details: { expiry: [26, 12], holder: "Upcheck" },
 	limit: ["USD", 1000],
-	preset: "p2p-ta-pg-200",
+	preset: "test-ta-pg-200",
 	rules: [],
 }
