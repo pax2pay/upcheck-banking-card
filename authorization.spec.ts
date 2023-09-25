@@ -1,4 +1,5 @@
 import { gracely } from "gracely"
+import { isoly } from "isoly"
 import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import { http } from "cloudly-http"
@@ -18,7 +19,14 @@ describe("pax2pay.Authorization", () => {
 	let authorization: pax2pay.Authorization | undefined
 	let failedAuthorization: pax2pay.Authorization | undefined
 	beforeAll(async () => {
-		const card = await pax2payClient?.cards.list().then(r => (gracely.Error.is(r) ? undefined : r[1].id))
+		const yesterday = isoly.DateTime.previous(isoly.DateTime.now(), { hours: 1 })
+		const card = await pax2payClient?.cards
+			.list()
+			.then(r =>
+				gracely.Error.is(r)
+					? undefined
+					: r.find(e => e.created < yesterday && e.organization == pax2payClient.organization)?.id
+			)
 		authorization = await client?.post<pax2pay.Authorization>("/authorization", { ...creatable, card })
 		await client?.post<pax2pay.Authorization>("/authorization", {
 			...creatable,
