@@ -20,13 +20,13 @@ describe("pax2pay.Authorization", () => {
 	let failedAuthorization: pax2pay.Authorization | undefined
 	const now = isoly.DateTime.now()
 	beforeAll(async () => {
-		const yesterday = isoly.DateTime.previous(now, { hours: 1 })
+		const yesterHour = isoly.DateTime.previous(now, { hours: 1 })
 		const card = await pax2payClient?.cards
 			.list()
 			.then(r =>
 				gracely.Error.is(r)
 					? undefined
-					: r.find(e => e.created < yesterday && e.organization == pax2payClient.organization)?.id
+					: r.find(e => e.created < yesterHour && e.organization == pax2payClient.organization)?.id
 			)
 		const currentMinute = isoly.DateTime.getMinute(now)
 		const creatable = successes[~~(currentMinute / (60 / successes.length))]
@@ -126,7 +126,7 @@ const fails: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
 			number: "1351858913568",
 			country: "GB",
 		},
-		description: "An upcheck test authorization, to fail",
+		description: "Authorization to fail on the realm level due to sanctioned merchant country.",
 	},
 	{
 		amount: ["USD", 2000],
@@ -144,7 +144,7 @@ const fails: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
 			number: "1351858913568",
 			country: "GB",
 		},
-		description: "An upcheck test authorization, to fail",
+		description: "Authorization to fail on the organization level due to very high amount.",
 	},
 	{
 		amount: ["USD", 2600],
@@ -162,7 +162,7 @@ const fails: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
 			number: "1351858913568",
 			country: "GB",
 		},
-		description: "An upcheck test authorization, to fail",
+		description: "Authorization to fail on the realm level due to very high amount.",
 	},
 	{
 		amount: ["USD", 15],
@@ -180,7 +180,7 @@ const fails: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
 			number: "1351858913568",
 			country: "GB",
 		},
-		description: "An upcheck test authorization, to fail",
+		description: "Authorization to fail due to gambling MCC.",
 	},
 	{
 		amount: ["USD", 15],
@@ -198,6 +198,6 @@ const fails: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
 			number: "1351858913568",
 			country: "GB",
 		},
-		description: "An upcheck test authorization, to fail",
+		description: "Authorization to fail due to gambling MCC.",
 	},
 ]
