@@ -18,8 +18,9 @@ pax2payClient && (pax2payClient.organization = "agpiPo0v")
 describe("pax2pay.Authorization", () => {
 	let authorization: pax2pay.Authorization | undefined
 	let failedAuthorization: pax2pay.Authorization | undefined
+	const now = isoly.DateTime.now()
 	beforeAll(async () => {
-		const yesterday = isoly.DateTime.previous(isoly.DateTime.now(), { hours: 1 })
+		const yesterday = isoly.DateTime.previous(now, { hours: 1 })
 		const card = await pax2payClient?.cards
 			.list()
 			.then(r =>
@@ -27,7 +28,8 @@ describe("pax2pay.Authorization", () => {
 					? undefined
 					: r.find(e => e.created < yesterday && e.organization == pax2payClient.organization)?.id
 			)
-		const creatable = successes[~~(successes.length * Math.random())]
+		const currentMinute = isoly.DateTime.getMinute(now)
+		const creatable = successes[~~(currentMinute / (60 / successes.length))]
 		authorization = await client?.post<pax2pay.Authorization>("/authorization", { ...creatable, card })
 		await client?.post<pax2pay.Authorization>("/authorization", {
 			...creatable,
@@ -36,7 +38,7 @@ describe("pax2pay.Authorization", () => {
 		}) // This is to revert the effect the authorization has on the account.
 		console.log("authorization", authorization)
 		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", {
-			...fails[~~(fails.length * Math.random())],
+			...fails[~~(currentMinute / (60 / fails.length))],
 			card,
 		})
 	})
