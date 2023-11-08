@@ -29,7 +29,7 @@ describe("pax2pay.Card", () => {
 		expect(pax2pay.Card.is(fetched)).toBeTruthy()
 	})
 	it("update", async () => {
-		const amount = 2000
+		const amount = 10000
 		const updated = await client?.cards
 			.update(card.id, {
 				limit: ["USD", amount],
@@ -43,7 +43,7 @@ describe("pax2pay.Card", () => {
 const creatable: pax2pay.Card.Creatable = {
 	account: "WzauRHBO",
 	details: { expiry: [26, 12], holder: "Upcheck" },
-	limit: ["USD", 1000],
+	limit: ["USD", 9000],
 	preset: "test-ta-pg-200",
 	rules: [],
 }
