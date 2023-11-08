@@ -2,6 +2,7 @@ import { gracely } from "gracely"
 import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import * as dotenv from "dotenv"
+import { Authorization } from "./Authorizaiton"
 
 dotenv.config()
 jest.setTimeout(15000)
@@ -32,7 +33,7 @@ describe("pax2pay.Card", () => {
 		const amount = 10000
 		const updated = await client?.cards
 			.update(card.id, {
-				limit: ["USD", amount],
+				limit: [Authorization.currency, amount],
 			})
 			.then(r => (gracely.Error.is(r) ? (console.log("updated: ", r), undefined) : r))
 		expect(pax2pay.Card.is(updated)).toBeTruthy()
@@ -43,7 +44,7 @@ describe("pax2pay.Card", () => {
 const creatable: pax2pay.Card.Creatable = {
 	account: "WzauRHBO",
 	details: { expiry: [26, 12], holder: "Upcheck" },
-	limit: ["USD", 9000],
+	limit: [Authorization.currency, 9000],
 	preset: "test-ta-pg-200",
 	rules: [],
 }
