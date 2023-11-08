@@ -26,13 +26,13 @@ export namespace Authorization {
 		client: pax2pay.Client | undefined
 	): Promise<Record<"succeeding" | "failing", Omit<pax2pay.Authorization.Creatable, "reference">>> {
 		const currentMinute = isoly.DateTime.getMinute(isoly.DateTime.now())
-		const creatable = successes[1] //~~(currentMinute / (60 / successes.length))]
+		const creatable = successes[~~(currentMinute / (60 / successes.length))]
 		const card: string = await getCard(client, creatable.amount[1])
 		return {
 			succeeding: { ...creatable, card },
 			failing: {
 				...fails[~~(currentMinute / (60 / fails.length))],
-				card: "",
+				card,
 			},
 		}
 	}
