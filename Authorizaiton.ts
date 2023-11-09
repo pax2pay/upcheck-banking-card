@@ -1,56 +1,46 @@
 import { gracely } from "gracely"
 import { isoly } from "isoly"
 import { pax2pay } from "@pax2pay/model-banking"
+import { http } from "cloudly-http"
+import { Card } from "./Card"
 
 export namespace Authorization {
-	async function getCard(client: pax2pay.Client | undefined, amount: number) {
-		const cards = (await client?.cards.list().then(r => (gracely.Error.is(r) ? [] : r))) ?? []
-		let card: any = undefined
-		while (!card && (cards?.length ?? 0) > 0) {
-			const contender = cards?.shift()
-			if (contender && contender.organization == client?.organization)
-				card = (
-					await client?.cards
-						.fetch(contender.id)
-						.then(c =>
-							!gracely.Error.is(c) && c.limit[0] == Authorization.currency && c.limit[1] > amount && c.rules.length == 0
-								? c
-								: undefined
-						)
-				)?.id
-		}
-		return card
-	}
-	export async function getCreatables(
-		client: pax2pay.Client | undefined
-	): Promise<Record<"succeeding" | "failing" | "flagless", Omit<pax2pay.Authorization.Creatable, "reference">>> {
+	const authorizations = ["succeeding", "failing", "flagless"] as const
+	export type Authorizations = typeof authorizations[number]
+	export async function create(
+		client: http.Client,
+		pax2payClient: pax2pay.Client
+	): Promise<Partial<Record<Authorizations, pax2pay.Authorization>> | undefined> {
+		const result: Partial<Record<Authorizations, pax2pay.Authorization>> = {}
 		const currentMinute = isoly.DateTime.getMinute(isoly.DateTime.now())
-		const creatable = successes[~~(currentMinute / (60 / successes.length))]
-		const card: string = await getCard(client, creatable.amount[1])
-		return {
-			succeeding: { ...creatable, card },
-			flagless: { ...baseCreatable, card },
-			failing: {
-				...fails[~~(currentMinute / (60 / fails.length))],
-				card,
-			},
+		const currentHour = isoly.DateTime.getHour(isoly.DateTime.now())
+		let card
+		for (const authorization of authorizations) {
+			!(authorization == "failing" && !(currentHour % 6) && currentMinute > 50) &&
+				(card = await Card.create(pax2payClient).then(c => (gracely.Error.is(c) ? undefined : c?.id)))
+			result[authorization] =
+				card != undefined
+					? await client?.post<pax2pay.Authorization>("/authorization", {
+							...creatables[authorization][~~(currentMinute / (60 / creatables[authorization].length))],
+							card,
+					  })
+					: undefined
 		}
+		return result
 	}
-
-	export const currency = "GBP"
 }
 const amount: Record<
 	"low" | "normal" | "highOrganization" | "highRealm" | "veryHighOrganization" | "veryHighRealm",
 	pax2pay.Amount
 > = {
-	low: [Authorization.currency, 1],
-	normal: [Authorization.currency, 15],
-	highOrganization: [Authorization.currency, 501],
-	highRealm: [Authorization.currency, 801],
-	veryHighOrganization: [Authorization.currency, 2000],
-	veryHighRealm: [Authorization.currency, 2600],
+	low: [Card.currency, 1],
+	normal: [Card.currency, 15],
+	highOrganization: [Card.currency, 501],
+	highRealm: [Card.currency, 801],
+	veryHighOrganization: [Card.currency, 2000],
+	veryHighRealm: [Card.currency, 2600],
 }
-const baseCreatable: Omit<pax2pay.Authorization.Creatable, "card" | "reference"> = {
+const flagless: Omit<pax2pay.Authorization.Creatable, "card" | "reference"> = {
 	amount: amount.normal,
 	merchant: {
 		name: "paxair",
@@ -68,51 +58,55 @@ const baseCreatable: Omit<pax2pay.Authorization.Creatable, "card" | "reference">
 	},
 	description: "An upcheck test authorization, to succeed.",
 }
-const successes: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
-	{ ...baseCreatable, amount: amount.low, description: baseCreatable.description + " with low amount flag." },
+const creatables: Record<Authorization.Authorizations, Omit<pax2pay.Authorization.Creatable, "card" | "reference">[]> =
 	{
-		...baseCreatable,
-		amount: amount.highOrganization,
-		description: baseCreatable.description + " with high organizaiton amount flag.",
-	},
-	{
-		...baseCreatable,
-		amount: amount.highRealm,
-		description: baseCreatable.description + " with high realm amount flag.",
-	},
-]
-const fails: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
-	{
-		...baseCreatable,
-		merchant: { ...baseCreatable.merchant, country: "KP" },
-		description: "Authorization to fail on the realm level due to sanctioned merchant country.",
-	},
-	{
-		...baseCreatable,
-		amount: amount.veryHighOrganization,
-		description: "Authorization to fail on the organization level due to very high amount.",
-	},
-	{
-		...baseCreatable,
-		amount: amount.veryHighRealm,
-		description: "Authorization to fail on the realm level due to very high amount.",
-	},
-	{
-		...baseCreatable,
-		merchant: {
-			...baseCreatable.merchant,
-			name: "paxsino",
-			category: "7801",
-		},
-		description: "Authorization to fail due to casino MCC.",
-	},
-	{
-		...baseCreatable,
-		merchant: {
-			...baseCreatable.merchant,
-			name: "pax dog and horse racing",
-			category: "7802",
-		},
-		description: "Authorization to fail due to gambling MCC.",
-	},
-]
+		succeeding: [
+			{ ...flagless, amount: amount.low, description: flagless.description + " with low amount flag." },
+			{
+				...flagless,
+				amount: amount.highOrganization,
+				description: flagless.description + " with high organizaiton amount flag.",
+			},
+			{
+				...flagless,
+				amount: amount.highRealm,
+				description: flagless.description + " with high realm amount flag.",
+			},
+		],
+		flagless: [flagless],
+		failing: [
+			{
+				...flagless,
+				merchant: { ...flagless.merchant, country: "KP" },
+				description: "Authorization to fail on the realm level due to sanctioned merchant country.",
+			},
+			{
+				...flagless,
+				amount: amount.veryHighOrganization,
+				description: "Authorization to fail on the organization level due to very high amount.",
+			},
+			{
+				...flagless,
+				amount: amount.veryHighRealm,
+				description: "Authorization to fail on the realm level due to very high amount.",
+			},
+			{
+				...flagless,
+				merchant: {
+					...flagless.merchant,
+					name: "paxsino",
+					category: "7801",
+				},
+				description: "Authorization to fail due to casino MCC.",
+			},
+			{
+				...flagless,
+				merchant: {
+					...flagless.merchant,
+					name: "pax dog and horse racing",
+					category: "7802",
+				},
+				description: "Authorization to fail due to gambling MCC.",
+			},
+		],
+	}
