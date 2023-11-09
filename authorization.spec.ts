@@ -15,27 +15,22 @@ const pax2payClient =
 pax2payClient && (pax2payClient.realm = "test")
 pax2payClient && (pax2payClient.organization = "agpiPo0v")
 describe("pax2pay.Authorization", () => {
-	let succeeded: pax2pay.Authorization | undefined
-	let flaglesslySucceeded: pax2pay.Authorization | undefined
-	let failed: pax2pay.Authorization | undefined
+	let authorization: Partial<Record<Authorization.Authorizations, pax2pay.Authorization>> | undefined
 	beforeAll(async () => {
-		const { succeeding, failing, flagless } = await Authorization.getCreatables(pax2payClient)
-		succeeded = await client?.post<pax2pay.Authorization>("/authorization", succeeding)
-		flaglesslySucceeded = await client?.post<pax2pay.Authorization>("/authorization", flagless)
-		failed = await client?.post<pax2pay.Authorization>("/authorization", failing)
+		authorization = client && pax2payClient && (await Authorization.create(client, pax2payClient))
 	})
-	it("create succeeded", () => {
-		console.log("authorization", JSON.stringify(succeeded, null, 2))
-		expect(pax2pay.Authorization.is(succeeded))
-		expect(succeeded?.status).toEqual("approved")
+	it("create succeeding", () => {
+		console.log("succeeding", JSON.stringify(authorization?.succeeding, null, 2))
+		expect(pax2pay.Authorization.is(authorization?.succeeding))
+		expect(authorization?.succeeding?.status).toEqual("approved")
 	})
 	it("create flagless", () => {
-		console.log("flagless", JSON.stringify(succeeded, null, 2))
-		expect(pax2pay.Authorization.is(flaglesslySucceeded))
-		expect(flaglesslySucceeded?.status).toEqual("approved")
+		console.log("flagless", JSON.stringify(authorization?.flagless, null, 2))
+		expect(pax2pay.Authorization.is(authorization?.flagless))
+		expect(authorization?.flagless?.status).toEqual("approved")
 	})
-	it("create failed", () => {
-		console.log("failed", JSON.stringify(succeeded, null, 2))
-		expect(failed?.status).not.toEqual("approved")
+	it("create failing", () => {
+		console.log("failing", JSON.stringify(authorization?.failing, null, 2))
+		expect(authorization?.failing?.status).not.toEqual("approved")
 	})
 })
