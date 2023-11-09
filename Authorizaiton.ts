@@ -6,7 +6,6 @@ export namespace Authorization {
 	async function getCard(client: pax2pay.Client | undefined, amount: number) {
 		const cards = (await client?.cards.list().then(r => (gracely.Error.is(r) ? [] : r))) ?? []
 		let card: any = undefined
-		console.log("cards:", cards)
 		while (!card && (cards?.length ?? 0) > 0) {
 			const contender = cards?.shift()
 			if (contender && contender.organization == client?.organization)
@@ -24,12 +23,13 @@ export namespace Authorization {
 	}
 	export async function getCreatables(
 		client: pax2pay.Client | undefined
-	): Promise<Record<"succeeding" | "failing", Omit<pax2pay.Authorization.Creatable, "reference">>> {
+	): Promise<Record<"succeeding" | "failing" | "flagless", Omit<pax2pay.Authorization.Creatable, "reference">>> {
 		const currentMinute = isoly.DateTime.getMinute(isoly.DateTime.now())
 		const creatable = successes[~~(currentMinute / (60 / successes.length))]
 		const card: string = await getCard(client, creatable.amount[1])
 		return {
 			succeeding: { ...creatable, card },
+			flagless: { ...baseCreatable, card },
 			failing: {
 				...fails[~~(currentMinute / (60 / fails.length))],
 				card,
@@ -66,11 +66,10 @@ const baseCreatable: Omit<pax2pay.Authorization.Creatable, "card" | "reference">
 		number: "1351858913568",
 		country: "GB",
 	},
-	description: "An upcheck test authorization, to succeed",
+	description: "An upcheck test authorization, to succeed.",
 }
 const successes: Omit<pax2pay.Authorization.Creatable, "card" | "reference">[] = [
 	{ ...baseCreatable, amount: amount.low, description: baseCreatable.description + " with low amount flag." },
-	baseCreatable,
 	{
 		...baseCreatable,
 		amount: amount.highOrganization,

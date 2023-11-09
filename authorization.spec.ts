@@ -15,19 +15,27 @@ const pax2payClient =
 pax2payClient && (pax2payClient.realm = "test")
 pax2payClient && (pax2payClient.organization = "agpiPo0v")
 describe("pax2pay.Authorization", () => {
-	let authorization: pax2pay.Authorization | undefined
-	let failedAuthorization: pax2pay.Authorization | undefined
+	let succeeded: pax2pay.Authorization | undefined
+	let flaglesslySucceeded: pax2pay.Authorization | undefined
+	let failed: pax2pay.Authorization | undefined
 	beforeAll(async () => {
-		const { succeeding, failing } = await Authorization.getCreatables(pax2payClient)
-		authorization = await client?.post<pax2pay.Authorization>("/authorization", succeeding)
-		console.log("authorization", JSON.stringify(authorization, null, 2))
-		failedAuthorization = await client?.post<pax2pay.Authorization>("/authorization", failing)
+		const { succeeding, failing, flagless } = await Authorization.getCreatables(pax2payClient)
+		succeeded = await client?.post<pax2pay.Authorization>("/authorization", succeeding)
+		flaglesslySucceeded = await client?.post<pax2pay.Authorization>("/authorization", flagless)
+		failed = await client?.post<pax2pay.Authorization>("/authorization", failing)
 	})
 	it("create succeeded", () => {
-		expect(pax2pay.Authorization.is(authorization))
-		expect(authorization?.status).toEqual("approved")
+		console.log("authorization", JSON.stringify(succeeded, null, 2))
+		expect(pax2pay.Authorization.is(succeeded))
+		expect(succeeded?.status).toEqual("approved")
+	})
+	it("create flagless", () => {
+		console.log("flagless", JSON.stringify(succeeded, null, 2))
+		expect(pax2pay.Authorization.is(flaglesslySucceeded))
+		expect(flaglesslySucceeded?.status).toEqual("approved")
 	})
 	it("create failed", () => {
-		expect(failedAuthorization?.status).not.toEqual("approved")
+		console.log("failed", JSON.stringify(succeeded, null, 2))
+		expect(failed?.status).not.toEqual("approved")
 	})
 })
