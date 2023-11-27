@@ -11,7 +11,7 @@ export namespace Clients {
 			process.env.paxgiroUrl && process.env.paxgiroAuth
 				? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
 				: undefined
-		const pax2payClient = process.env.previewurl ? pax2pay.Client.create(process.env.previewurl, "") : undefined
+		const pax2payClient = process.env.url ? pax2pay.Client.create(process.env.url, "") : undefined
 		pax2payClient && (pax2payClient.realm = "test")
 		pax2payClient && (pax2payClient.organization = "agpiPo0v")
 		return { pax2payClient: pax2payClient, paxgiro: paxgiro }
