@@ -3,21 +3,22 @@ import { pax2pay } from "@pax2pay/model-banking"
 import { http } from "cloudly-http"
 import * as dotenv from "dotenv"
 import { Authorization } from "./Authorizaiton"
+import { Clients } from "./Clients"
 
 dotenv.config()
 jest.setTimeout(15000)
-export const client =
-	process.env.paxgiroUrl && process.env.paxgiroAuth
-		? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
-		: undefined
-const pax2payClient =
-	process.env.url && process.env.key ? pax2pay.Client.create(process.env.url, process.env.key) : undefined
-pax2payClient && (pax2payClient.realm = "test")
-pax2payClient && (pax2payClient.organization = "agpiPo0v")
+let client: { pax2payClient?: pax2pay.Client & Record<string, any>; paxgiro?: http.Client }
+let login: boolean | undefined
+let authorization: Partial<Record<Authorization.Authorizations, pax2pay.Authorization>> | undefined
 describe("pax2pay.Authorization", () => {
-	let authorization: Partial<Record<Authorization.Authorizations, pax2pay.Authorization>> | undefined
 	beforeAll(async () => {
-		authorization = client && pax2payClient && (await Authorization.create(client, pax2payClient))
+		client = await Clients.create()
+		login = client && (await Clients.login(client))
+		authorization =
+			client.paxgiro && client.pax2payClient && (await Authorization.create(client.paxgiro, client.pax2payClient))
+	})
+	it("get token", async () => {
+		expect(login).toBeTruthy()
 	})
 	it("create succeeding", () => {
 		console.log("succeeding", JSON.stringify(authorization?.succeeding, null, 2))

@@ -3,26 +3,31 @@ import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import * as dotenv from "dotenv"
 import { Card } from "./Card"
+import { Clients } from "./Clients"
 
 dotenv.config()
 jest.setTimeout(15000)
-const client = process.env.url && process.env.key ? pax2pay.Client.create(process.env.url, process.env.key) : undefined
-client && (client.realm = "test")
-client && (client.organization = "agpiPo0v")
+let client: { pax2payClient?: pax2pay.Client & Record<string, any> }
+let login: boolean | undefined
+let card: pax2pay.Card
+let fetched: pax2pay.Card | undefined | gracely.Error
 
 describe("pax2pay.Card", () => {
-	let card: pax2pay.Card
-	let fetched: pax2pay.Card | undefined | gracely.Error
 	beforeAll(async () => {
-		const created = await Card.create(client)
+		client = await Clients.create()
+		login = await Clients.login(client)
+		const created = await Card.create(client?.pax2payClient)
 		console.log("created", created)
 		if (!created || gracely.Error.is(created))
 			console.log("created", created)
 		else {
 			card = created
-			fetched = await client?.cards.fetch(card.id)
+			fetched = await client?.pax2payClient?.cards.fetch(card.id)
 			console.log("fetched", fetched)
 		}
+	})
+	it("get token", async () => {
+		expect(login).toBeTruthy()
 	})
 	it("create", () => {
 		expect(pax2pay.Card.is(card)).toBeTruthy()
@@ -32,7 +37,7 @@ describe("pax2pay.Card", () => {
 	})
 	it("update", async () => {
 		const amount = 10000
-		const updated = await client?.cards
+		const updated = await client?.pax2payClient?.cards
 			.update(card?.id, {
 				limit: [Card.currency, amount],
 			})
