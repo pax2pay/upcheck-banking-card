@@ -37,12 +37,15 @@ describe("pax2pay.Card", () => {
 	})
 	it("update", async () => {
 		const amount = 10000
-		const updated = await client?.pax2payClient?.cards
-			.update(card?.id, {
-				limit: [Card.currency, amount],
-			})
-			.then(r => (gracely.Error.is(r) ? (console.log("updated: ", r), undefined) : r))
-		expect(pax2pay.Card.is(updated)).toBeTruthy()
-		expect(updated?.limit[1]).toEqual(amount)
+		const updated = await client?.pax2payClient?.cards.update(card?.id, {
+			limit: [Card.currency, amount],
+		})
+		const isCard = pax2pay.Card.is(updated)
+		if (!isCard) {
+			console.log("updated: ", updated)
+			console.log("updated flaw: ", pax2pay.Card.type.flaw(updated))
+		}
+		expect(isCard).toBeTruthy()
+		expect(updated && "limit" in updated && updated.limit[1]).toEqual(amount)
 	})
 })
