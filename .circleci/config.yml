@@ -27,7 +27,7 @@ commands:
       - run:
           name: Run Pax2pay banking card API tests
           command: |
-            if npm run test &> workspace/output ; then
+            if npm run test --maxWorkers=2 &> workspace/output ; then
               echo 'export TESTS_PASS=true' >> $BASH_ENV
             else
               echo 'export TESTS_PASS=false' >> $BASH_ENV
