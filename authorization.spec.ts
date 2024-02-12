@@ -2,7 +2,7 @@ import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import { http } from "cloudly-http"
 import * as dotenv from "dotenv"
-import { Authorization } from "./Authorizaiton"
+import { Authorization } from "./Authorization"
 import { Clients } from "./Clients"
 
 dotenv.config()

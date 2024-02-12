@@ -7,6 +7,7 @@ export namespace Card {
 		return await client?.cards.create(creatable)
 	}
 	export const creatable: pax2pay.Card.Creatable = {
+		/* cspell: disable-next-line */
 		account: "WzauRHBO",
 		details: { expiry: [26, 12], holder: "Upcheck" },
 		limit: [currency, 9000],

@@ -11,22 +11,32 @@ export namespace Authorization {
 		client: http.Client,
 		pax2payClient: pax2pay.Client
 	): Promise<Partial<Record<Authorizations, pax2pay.Authorization>> | undefined> {
-		const result: Partial<Record<Authorizations, pax2pay.Authorization>> = {}
 		const currentMinute = isoly.DateTime.getMinute(isoly.DateTime.now())
 		const currentHour = isoly.DateTime.getHour(isoly.DateTime.now())
-		let card
-		for (const authorization of authorizations) {
-			!(authorization == "failing" && !(currentHour % 6) && currentMinute > 50) &&
-				(card = await Card.create(pax2payClient).then(c => (gracely.Error.is(c) ? undefined : c?.id)))
-			result[authorization] =
-				card != undefined
-					? await client?.post<pax2pay.Authorization>("/authorization", {
-							...creatables[authorization][~~(currentMinute / (60 / creatables[authorization].length))],
-							card,
-					  })
-					: undefined
-		}
-		return result
+		return Object.fromEntries(
+			await Promise.all(authorizations.map(a => authorize(a, currentHour, currentMinute, client, pax2payClient)))
+		)
+	}
+
+	async function authorize(
+		type: Authorizations,
+		currentHour: number,
+		currentMinute: number,
+		client: http.Client,
+		pax2payClient: pax2pay.Client
+	): Promise<[Authorizations, pax2pay.Authorization | undefined]> {
+		let card: string | undefined
+		!(type == "failing" && !(currentHour % 6) && currentMinute > 50) &&
+			(card = await Card.create(pax2payClient).then(c => (gracely.Error.is(c) ? undefined : c?.id)))
+		return [
+			type,
+			card != undefined
+				? await client?.post<pax2pay.Authorization>("/authorization", {
+						...creatables[type][~~(currentMinute / (60 / creatables[type].length))],
+						card,
+				  })
+				: undefined,
+		]
 	}
 }
 const amount: Record<
@@ -52,6 +62,7 @@ const flagless: Omit<pax2pay.Authorization.Creatable, "card" | "reference"> = {
 		address: "Streetname 1, 12345 Towncity",
 	},
 	acquirer: {
+		/* cspell: disable-next-line */
 		id: "2345erty",
 		number: "1351858913568",
 		country: "GB",
@@ -65,7 +76,7 @@ const creatables: Record<Authorization.Authorizations, Omit<pax2pay.Authorizatio
 			{
 				...flagless,
 				amount: amount.highOrganization,
-				description: flagless.description + " with high organizaiton amount flag.",
+				description: flagless.description + " with high organization amount flag.",
 			},
 			{
 				...flagless,
@@ -94,6 +105,7 @@ const creatables: Record<Authorization.Authorizations, Omit<pax2pay.Authorizatio
 				...flagless,
 				merchant: {
 					...flagless.merchant,
+					/* cspell: disable-next-line */
 					name: "paxsino",
 					category: "7801",
 				},

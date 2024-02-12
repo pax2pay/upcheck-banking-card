@@ -13,6 +13,7 @@ export namespace Clients {
 				: undefined
 		const pax2payClient = process.env.url ? pax2pay.Client.create(process.env.url, "") : undefined
 		pax2payClient && (pax2payClient.realm = "test")
+		/* cspell: disable-next-line */
 		pax2payClient && (pax2payClient.organization = "agpiPo0v")
 		return { pax2payClient: pax2payClient, paxgiro: paxgiro }
 	}
