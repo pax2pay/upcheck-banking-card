@@ -14,7 +14,6 @@ let fetched: pax2pay.Card | undefined | gracely.Error
 
 describe("pax2pay.Card", () => {
 	beforeAll(async () => {
-		const now = Date.now() / 1000
 		client = await Clients.create()
 		login = await Clients.login(client)
 		const created = await Card.create(client?.pax2payClient)
@@ -26,7 +25,6 @@ describe("pax2pay.Card", () => {
 			fetched = await client?.pax2payClient?.cards.fetch(card.id)
 			console.log("fetched", fetched)
 		}
-		console.log("before all", Date.now() / 1000 - now)
 	})
 	it("get token", async () => {
 		expect(login).toBeTruthy()
@@ -38,7 +36,6 @@ describe("pax2pay.Card", () => {
 		expect(pax2pay.Card.is(fetched)).toBeTruthy()
 	})
 	it("update", async () => {
-		const now = Date.now() / 1000
 		const amount = 10000
 		const updated = await client?.pax2payClient?.cards.update(card?.id, {
 			limit: [Card.currency, amount],
@@ -50,6 +47,5 @@ describe("pax2pay.Card", () => {
 		}
 		expect(isCard).toBeTruthy()
 		expect(updated && "limit" in updated && updated.limit[1]).toEqual(amount)
-		console.log("update", Date.now() / 1000 - now)
 	})
 })
