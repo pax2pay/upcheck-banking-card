@@ -1,4 +1,3 @@
-import { gracely } from "gracely"
 import { isoly } from "isoly"
 import { pax2pay } from "@pax2pay/model-banking"
 import { http } from "cloudly-http"
@@ -28,7 +27,7 @@ export namespace Authorization {
 		let card: string | undefined = undefined
 		if (!(type == "failing" && !(currentHour % 6) && currentMinute > 50)) {
 			const created = await Card.create(pax2payClient)
-			gracely.Error.is(created)
+			!pax2pay.Card.is(created)
 				? console.log(
 						`authorization test ${type} failed due to card creation error: `,
 						JSON.stringify(created, null, 2)

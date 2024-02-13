@@ -8,8 +8,8 @@ import { Clients } from "./Clients"
 dotenv.config()
 jest.setTimeout(15000)
 let client: { pax2payClient?: pax2pay.Client & Record<string, any> }
-let login: boolean | undefined
-let card: pax2pay.Card
+let login: boolean | undefined = undefined
+let card: pax2pay.Card | undefined = undefined
 
 describe("pax2pay.Card", () => {
 	beforeAll(async () => {
@@ -19,9 +19,9 @@ describe("pax2pay.Card", () => {
 		let fetched: pax2pay.Card | gracely.Error
 		if (!client.pax2payClient) {
 			console.log("Client creation failed; check environment.")
-		} else if (gracely.Error.is((created = await Card.create(client.pax2payClient)))) {
+		} else if (!pax2pay.Card.is((created = await Card.create(client.pax2payClient)))) {
 			console.log("Card creation failed in before all: ", JSON.stringify(created, null, 2))
-		} else if (gracely.Error.is((fetched = await client.pax2payClient.cards.fetch(card.id)))) {
+		} else if (!pax2pay.Card.is((fetched = await client.pax2payClient.cards.fetch(created.id)))) {
 			console.log("Card fetch failed in before all: ", JSON.stringify(fetched, null, 2))
 		} else
 			card = created
@@ -34,15 +34,25 @@ describe("pax2pay.Card", () => {
 	})
 	it("update", async () => {
 		const amount = 10000
-		const updated = await client?.pax2payClient?.cards.update(card?.id, {
-			limit: [Card.currency, amount],
-		})
-		const isCard = pax2pay.Card.is(updated)
-		if (!isCard) {
-			console.log("updated: ", updated)
-			console.log("updated flaw: ", pax2pay.Card.type.flaw(updated))
-		}
-		expect(isCard).toBeTruthy()
+		let updated: pax2pay.Card | gracely.Error | undefined = undefined
+		if (!client.pax2payClient)
+			console.log("Client creation failed; check environment.")
+		else if (!card)
+			console.log("card.update test failed due to global variable card being undefined.")
+		else if (
+			pax2pay.Card.is(
+				(updated = await client.pax2payClient.cards.update(card.id, {
+					limit: [Card.currency, amount],
+				}))
+			)
+		)
+			console.log(
+				"card.update failed with: ",
+				JSON.stringify(updated, null, 2),
+				"\nflaw: ",
+				JSON.stringify(pax2pay.Card.type.flaw(updated), null, 2)
+			)
+		expect(pax2pay.Card.is(updated)).toBeTruthy()
 		expect(updated && "limit" in updated && updated.limit[1]).toEqual(amount)
 	})
 })
