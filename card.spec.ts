@@ -10,30 +10,27 @@ jest.setTimeout(15000)
 let client: { pax2payClient?: pax2pay.Client & Record<string, any> }
 let login: boolean | undefined
 let card: pax2pay.Card
-let fetched: pax2pay.Card | undefined | gracely.Error
 
 describe("pax2pay.Card", () => {
 	beforeAll(async () => {
 		client = await Clients.create()
 		login = await Clients.login(client)
-		const created = await Card.create(client?.pax2payClient)
-		console.log("created", created)
-		if (!created || gracely.Error.is(created))
-			console.log("created", created)
-		else {
+		let created: pax2pay.Card | gracely.Error
+		let fetched: pax2pay.Card | gracely.Error
+		if (!client.pax2payClient) {
+			console.log("Client creation failed; check environment.")
+		} else if (gracely.Error.is((created = await Card.create(client.pax2payClient)))) {
+			console.log("Card creation failed in before all: ", JSON.stringify(created, null, 2))
+		} else if (gracely.Error.is((fetched = await client.pax2payClient.cards.fetch(card.id)))) {
+			console.log("Card fetch failed in before all: ", JSON.stringify(fetched, null, 2))
+		} else
 			card = created
-			fetched = await client?.pax2payClient?.cards.fetch(card.id)
-			console.log("fetched", fetched)
-		}
 	})
 	it("get token", async () => {
 		expect(login).toBeTruthy()
 	})
 	it("create", () => {
 		expect(pax2pay.Card.is(card)).toBeTruthy()
-	})
-	it("fetch", () => {
-		expect(pax2pay.Card.is(fetched)).toBeTruthy()
 	})
 	it("update", async () => {
 		const amount = 10000

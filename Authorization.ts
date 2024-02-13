@@ -25,17 +25,24 @@ export namespace Authorization {
 		client: http.Client,
 		pax2payClient: pax2pay.Client
 	): Promise<[Authorizations, pax2pay.Authorization | undefined]> {
-		let card: string | undefined
-		!(type == "failing" && !(currentHour % 6) && currentMinute > 50) &&
-			(card = await Card.create(pax2payClient).then(c => (gracely.Error.is(c) ? undefined : c?.id)))
+		let card: string | undefined = undefined
+		if (!(type == "failing" && !(currentHour % 6) && currentMinute > 50)) {
+			const created = await Card.create(pax2payClient)
+			gracely.Error.is(created)
+				? console.log(
+						`authorization test ${type} failed due to card creation error: `,
+						JSON.stringify(created, null, 2)
+				  )
+				: (card = created.id)
+		}
 		return [
 			type,
-			card != undefined
-				? await client?.post<pax2pay.Authorization>("/authorization", {
+			card == undefined
+				? undefined
+				: await client.post<pax2pay.Authorization>("/authorization", {
 						...creatables[type][~~(currentMinute / (60 / creatables[type].length))],
 						card,
-				  })
-				: undefined,
+				  }),
 		]
 	}
 }
