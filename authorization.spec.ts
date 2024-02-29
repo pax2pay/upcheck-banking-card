@@ -1,3 +1,4 @@
+import { isoly } from "isoly"
 import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import { http } from "cloudly-http"
@@ -33,5 +34,18 @@ describe("pax2pay.Authorization", () => {
 	it("create failing", () => {
 		console.log("failing", JSON.stringify(authorization?.failing, null, 2))
 		expect(authorization?.failing?.status).not.toEqual("approved")
+	})
+	it("refund", async () => {
+		const now = isoly.DateTime.now()
+		let result: boolean
+		if (!(isoly.DateTime.getHour(now) > 23 && isoly.DateTime.getMinute(now) > 50)) {
+			result = true
+		} else if (!client.pax2payClient || !client.paxgiro) {
+			console.log("Client creation failed; check environment.")
+			result = false
+		} else {
+			result = await Authorization.refund({ paxgiro: client.paxgiro, pax2pay: client.pax2payClient })
+		}
+		expect(result).toBeTruthy()
 	})
 })

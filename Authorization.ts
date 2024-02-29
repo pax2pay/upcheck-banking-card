@@ -16,7 +16,6 @@ export namespace Authorization {
 			await Promise.all(authorizations.map(a => authorize(a, currentHour, currentMinute, client, pax2payClient)))
 		)
 	}
-
 	async function authorize(
 		type: Authorizations,
 		currentHour: number,
@@ -43,6 +42,38 @@ export namespace Authorization {
 						card,
 				  }),
 		]
+	}
+	export async function refund(clients: { paxgiro: http.Client; pax2pay: pax2pay.Client }): Promise<boolean> {
+		let result: boolean
+		const card = await Card.create(clients.pax2pay)
+		if (!pax2pay.Card.is(card)) {
+			console.log("Card creation failed in refund: ", JSON.stringify(card, null, 2))
+			result = false
+		} else {
+			await clients.paxgiro.post("/clearing/refund", {
+				type: "refund",
+				batch: "ooooo",
+				id: "bbb",
+				card: card.id,
+				merchant: {
+					id: "aaa",
+					name: "acme travels",
+					category: "ccc",
+					city: "acme town",
+					zip: "123455",
+					country: "lll",
+					address: "cccccc",
+				},
+				acquirer: {
+					id: "lll",
+					number: "ccccc",
+				},
+				amount: ["USD", -100000],
+				fee: ["USD", -500],
+			})
+			result = true
+		}
+		return result
 	}
 }
 const amount: Record<
