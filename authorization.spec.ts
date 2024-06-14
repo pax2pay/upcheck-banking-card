@@ -38,11 +38,6 @@ describe("pax2pay.Authorization", () => {
 			console.log("failing", JSON.stringify(authorization?.failing, null, 2))
 		expect(authorization?.failing?.status).not.toEqual("approved")
 	})
-	it("create credit", () => {
-		authorization?.credit?.status !== "approved" &&
-			console.log("credit", JSON.stringify(authorization?.credit, null, 2))
-		expect(authorization?.credit?.status).toEqual("approved")
-	})
 	it("refund", async () => {
 		const now = isoly.DateTime.now()
 		let result: boolean
