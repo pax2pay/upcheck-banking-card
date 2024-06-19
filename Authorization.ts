@@ -87,8 +87,9 @@ const amount: Record<
 	veryHighOrganization: [Card.currency, 2000],
 	veryHighRealm: [Card.currency, 2600],
 }
-const flagless: Omit<pax2pay.Authorization.Creatable, "card" | "reference"> = {
+const flagless: Omit<pax2pay.Authorization.Creatable, "card" | "reference"> & { preset: string } = {
 	amount: amount.normal,
+	preset: "test-ta-pg-200",
 	merchant: {
 		name: "paxair",
 		id: "abcd1234",
