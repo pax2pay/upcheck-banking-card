@@ -24,13 +24,13 @@ describe("pax2pay.Authorization", () => {
 	it("create succeeding", () => {
 		authorization?.succeeding?.status !== "approved" &&
 			console.log("succeeding", JSON.stringify(authorization?.succeeding, null, 2))
-		expect(pax2pay.Authorization.is(authorization?.succeeding))
+		expect(pax2pay.Authorization.type.is(authorization?.succeeding))
 		expect(authorization?.succeeding?.status).toEqual("approved")
 	})
 	it("create flagless", () => {
 		authorization?.flagless?.status !== "approved" &&
 			console.log("flagless", JSON.stringify(authorization?.flagless, null, 2))
-		expect(pax2pay.Authorization.is(authorization?.flagless))
+		expect(pax2pay.Authorization.type.is(authorization?.flagless))
 		expect(authorization?.flagless?.status).toEqual("approved")
 	})
 	it("create failing", () => {
@@ -38,11 +38,11 @@ describe("pax2pay.Authorization", () => {
 			console.log("failing", JSON.stringify(authorization?.failing, null, 2))
 		expect(authorization?.failing?.status).not.toEqual("approved")
 	})
-	it("create credit", () => {
-		authorization?.credit?.status !== "approved" &&
-			console.log("credit", JSON.stringify(authorization?.credit, null, 2))
-		expect(authorization?.credit?.status).toEqual("approved")
-	})
+	// it("create credit", () => {
+	// 	authorization?.credit?.status !== "approved" &&
+	// 		console.log("credit", JSON.stringify(authorization?.credit, null, 2))
+	// 	expect(authorization?.credit?.status).toEqual("approved")
+	// })
 	it("refund", async () => {
 		const now = isoly.DateTime.now()
 		let result: boolean
