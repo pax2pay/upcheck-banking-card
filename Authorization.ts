@@ -4,7 +4,7 @@ import { http } from "cloudly-http"
 import { Card } from "./Card"
 
 export namespace Authorization {
-	const authorizations = ["succeeding", "failing", "flagless"] as const // "credit" removed for now
+	const authorizations = ["succeeding", "failing", "flagless", "credit"] as const
 	export type Authorizations = typeof authorizations[number]
 	export async function create(
 		client: http.Client,
@@ -25,7 +25,7 @@ export namespace Authorization {
 	): Promise<[Authorizations, pax2pay.Authorization | undefined]> {
 		let card: string | undefined = undefined
 		if (!(type == "failing" && !(currentHour % 6) && currentMinute > 50)) {
-			const created = await Card.create(pax2payClient) // type == "credit" ? "BdJ4riwM" : undefined)
+			const created = await Card.create(pax2payClient, type == "credit" ? "BdJ4riwM" : undefined)
 			!pax2pay.Card.is(created)
 				? console.log(
 						`authorization test ${type} failed due to card creation error: `,
@@ -159,5 +159,5 @@ const creatables: Record<Authorization.Authorizations, Omit<pax2pay.Authorizatio
 				description: "Authorization to fail due to gambling MCC.",
 			},
 		],
-		// credit: [{ ...flagless, amount: amount.low, description: flagless.description + " with low amount flag." }],
+		credit: [{ ...flagless, amount: amount.low, description: flagless.description + " with low amount flag." }],
 	}
