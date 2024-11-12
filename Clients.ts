@@ -1,38 +1,41 @@
 import { gracely } from "gracely"
 import { pax2pay } from "@pax2pay/model-banking"
 import { http } from "cloudly-http"
+import * as dotenv from "dotenv"
 
-export namespace Clients {
-	export async function create(): Promise<{
-		pax2payClient?: pax2pay.Client & Record<string, any>
-		paxgiro?: http.Client
-	}> {
-		const paxgiro =
-			process.env.paxgiroUrl && process.env.paxgiroAuth
-				? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
-				: undefined
-		const pax2payClient = process.env.url ? pax2pay.Client.create(process.env.url, "") : undefined
-		pax2payClient && (pax2payClient.realm = "test")
-		/* cspell: disable-next-line */
-		pax2payClient && (pax2payClient.organization = "agpiPo0v")
-		return { pax2payClient: pax2payClient, paxgiro: paxgiro }
-	}
-	export async function login(client: {
-		pax2payClient?: pax2pay.Client & Record<string, any>
-		paxgiro?: http.Client
-	}): Promise<boolean> {
-		const key = await client.pax2payClient
-			?.userwidgets("https://user.pax2pay.app", "https://dash.pax2pay.app")
-			.me.login({
-				user: process.env.email ?? "",
-				password: process.env.password ?? "",
-			})
+export class Clients {
+	token?: string
+	pax2pay?: pax2pay.Client & Record<string, any>
+	paxgiro?: http.Client
+	constructor() {}
+	async login(): Promise<boolean> {
+		const key = await this.pax2pay?.userwidgets("https://user.pax2pay.app", "https://dash.pax2pay.app").me.login({
+			user: process.env.email ?? "",
+			password: process.env.password ?? "",
+		})
 		if (gracely.Error.is(key) || !key)
 			return false
 		else {
-			client.paxgiro && (client.paxgiro.key = key.token)
-			client.pax2payClient && (client.pax2payClient.key = key.token)
+			this.token = key.token
+			this.paxgiro && (this.paxgiro.key = key.token)
+			this.pax2pay && (this.pax2pay.key = key.token)
 			return true
 		}
 	}
+
+	static async open(): Promise<Clients> {
+		const clients = new Clients()
+		clients.paxgiro =
+			process.env.paxgiroUrl && process.env.paxgiroAuth
+				? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
+				: undefined
+		clients.pax2pay = process.env.url ? pax2pay.Client.create(process.env.url, "") : undefined
+		clients.pax2pay && (clients.pax2pay.realm = "test")
+		/* cspell: disable-next-line */
+		clients.pax2pay && (clients.pax2pay.organization = "agpiPo0v")
+		await clients.login()
+		return clients
+	}
 }
+dotenv.config()
+export const clients = Clients.open()
