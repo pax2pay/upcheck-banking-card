@@ -4,7 +4,7 @@ import { http } from "cloudly-http"
 import { Card } from "./Card"
 
 export namespace Authorization {
-	const authorizations = ["succeeding", "failing", "flagless", "credit"] as const
+	const authorizations = ["succeeding", "failing", "credit"] as const
 	export type Authorizations = typeof authorizations[number]
 	export async function create(
 		client: http.Client,
@@ -24,6 +24,7 @@ export namespace Authorization {
 		pax2payClient: pax2pay.Client
 	): Promise<[Authorizations, pax2pay.Authorization | undefined]> {
 		let card: string | undefined = undefined
+		const start = performance.now()
 		if (!(type == "failing" && !(currentHour % 6) && currentMinute > 50)) {
 			const created = await Card.create(pax2payClient, type == "credit" ? "BdJ4riwM" : undefined)
 			!pax2pay.Card.is(created)
@@ -33,7 +34,7 @@ export namespace Authorization {
 				  )
 				: (card = created.id)
 		}
-		return [
+		const result: [Authorizations, pax2pay.Authorization | undefined] = [
 			type,
 			card == undefined
 				? undefined
@@ -42,37 +43,7 @@ export namespace Authorization {
 						card,
 				  }),
 		]
-	}
-	export async function refund(clients: { paxgiro: http.Client; pax2pay: pax2pay.Client }): Promise<boolean> {
-		let result: boolean
-		const card = await Card.create(clients.pax2pay)
-		if (!pax2pay.Card.is(card)) {
-			console.log("Card creation failed in refund: ", JSON.stringify(card, null, 2))
-			result = false
-		} else {
-			await clients.paxgiro.post("/clearing/refund", {
-				type: "refund",
-				batch: "ooooo",
-				id: "bbb",
-				card: card.id,
-				merchant: {
-					id: "aaa",
-					name: "acme travels",
-					category: "ccc",
-					city: "acme town",
-					zip: "123455",
-					country: "lll",
-					address: "cccccc",
-				},
-				acquirer: {
-					id: "lll",
-					number: "ccccc",
-				},
-				amount: ["USD", -100000],
-				fee: ["USD", -500],
-			})
-			result = true
-		}
+		console.log(`Authorization ${type} took ${performance.now() - start} ms`)
 		return result
 	}
 }
@@ -122,7 +93,6 @@ const creatables: Record<Authorization.Authorizations, Omit<pax2pay.Authorizatio
 				description: flagless.description + " with high realm amount flag.",
 			},
 		],
-		flagless: [flagless],
 		failing: [
 			{
 				...flagless,
