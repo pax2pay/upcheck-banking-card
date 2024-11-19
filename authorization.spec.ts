@@ -17,7 +17,7 @@ describe("pax2pay.Authorization", () => {
 	it("create succeeding", () => {
 		authorization?.succeeding?.status !== "approved" &&
 			console.log("succeeding", JSON.stringify(authorization?.succeeding, null, 2))
-		expect(pax2pay.Authorization.is(authorization?.succeeding))
+		expect(pax2pay.Authorization.type.is(authorization?.succeeding))
 		expect(authorization?.succeeding?.status).toEqual("approved")
 	})
 	it("create failing", () => {
