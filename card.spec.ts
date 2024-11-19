@@ -14,15 +14,15 @@ describe("pax2pay.Card", () => {
 		client = await clients
 		if (!client?.pax2pay) {
 			console.log("Client creation failed; check environment.")
-		} else if (!pax2pay.Card.is((created = await Card.create(client.pax2pay)))) {
+		} else if (!pax2pay.Card.type.is((created = await Card.create(client.pax2pay)))) {
 			console.log("Card creation failed in before all: ", JSON.stringify(created, null, 2))
-		} else if (!pax2pay.Card.is((fetched = await client.pax2pay.cards.fetch(created.id)))) {
+		} else if (!pax2pay.Card.type.is((fetched = await client.pax2pay.cards.fetch(created.id)))) {
 			console.log("Card fetch failed in before all: ", JSON.stringify(fetched, null, 2))
 		} else
 			card = created
 	})
 	it("create", () => {
-		expect(pax2pay.Card.is(card)).toBeTruthy()
+		expect(pax2pay.Card.type.is(card)).toBeTruthy()
 	})
 	it("update", async () => {
 		const amount = 10000
@@ -32,7 +32,7 @@ describe("pax2pay.Card", () => {
 		else if (!card)
 			console.log("card.update test failed due to global variable card being undefined.")
 		else if (
-			!pax2pay.Card.is(
+			!pax2pay.Card.type.is(
 				(updated = await client.pax2pay.cards.update(card.id, {
 					limit: [Card.currency, amount],
 				}))
@@ -44,7 +44,7 @@ describe("pax2pay.Card", () => {
 				"\nflaw: ",
 				JSON.stringify(pax2pay.Card.type.flaw(updated), null, 2)
 			)
-		expect(pax2pay.Card.is(updated)).toBeTruthy()
+		expect(pax2pay.Card.type.is(updated)).toBeTruthy()
 		expect(updated && "limit" in updated && updated.limit[1]).toEqual(amount)
 	})
 })

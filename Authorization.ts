@@ -27,7 +27,7 @@ export namespace Authorization {
 		const start = performance.now()
 		if (!(type == "failing" && !(currentHour % 6) && currentMinute > 50)) {
 			const created = await Card.create(pax2payClient, type == "credit" ? "BdJ4riwM" : undefined)
-			!pax2pay.Card.is(created)
+			!pax2pay.Card.type.is(created)
 				? console.log(
 						`authorization test ${type} failed due to card creation error: `,
 						JSON.stringify(created, null, 2)
