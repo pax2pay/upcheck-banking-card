@@ -32,7 +32,7 @@ export namespace Authorization {
 						`authorization test ${type} failed due to card creation error: `,
 						JSON.stringify(created, null, 2)
 				  )
-				: (card = created.id)
+				: (card = created.reference)
 		}
 		const result: [Authorizations, pax2pay.Authorization | undefined] = [
 			type,
