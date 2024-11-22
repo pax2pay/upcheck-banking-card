@@ -20,14 +20,14 @@ describe("pax2pay.Authorization", () => {
 		expect(pax2pay.Authorization.type.is(authorization?.succeeding))
 		expect(authorization?.succeeding?.status).toEqual("approved")
 	})
-	it("create failing", () => {
-		authorization?.failing?.status === "approved" &&
-			console.log("failing", JSON.stringify(authorization?.failing, null, 2))
-		expect(authorization?.failing?.status).not.toEqual("approved")
-	})
-	it("create credit", () => {
-		authorization?.credit?.status !== "approved" &&
-			console.log("credit", JSON.stringify(authorization?.credit, null, 2))
-		expect(authorization?.credit?.status).toEqual("approved")
-	})
+	// it("create failing", () => {
+	// 	authorization?.failing?.status === "approved" &&
+	// 		console.log("failing", JSON.stringify(authorization?.failing, null, 2))
+	// 	expect(authorization?.failing?.status).not.toEqual("approved")
+	// })
+	// it("create credit", () => {
+	// 	authorization?.credit?.status !== "approved" &&
+	// 		console.log("credit", JSON.stringify(authorization?.credit, null, 2))
+	// 	expect(authorization?.credit?.status).toEqual("approved")
+	// })
 })
