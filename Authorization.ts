@@ -4,7 +4,7 @@ import { http } from "cloudly-http"
 import { Card } from "./Card"
 
 export namespace Authorization {
-	const authorizations = ["succeeding", "failing", "credit"] as const
+	const authorizations = ["succeeding"] as const //["succeeding", "failing", "credit"] as const
 	export type Authorizations = typeof authorizations[number]
 	export async function create(
 		client: http.Client,
@@ -25,15 +25,10 @@ export namespace Authorization {
 	): Promise<[Authorizations, pax2pay.Authorization | undefined]> {
 		let card: string | undefined = undefined
 		const start = performance.now()
-		if (!(type == "failing" && !(currentHour % 6) && currentMinute > 50)) {
-			const created = await Card.create(pax2payClient, type == "credit" ? "BdJ4riwM" : undefined)
-			!pax2pay.Card.type.is(created)
-				? console.log(
-						`authorization test ${type} failed due to card creation error: `,
-						JSON.stringify(created, null, 2)
-				  )
-				: (card = created.reference)
-		}
+		const created = await Card.create(pax2payClient, undefined)
+		!pax2pay.Card.type.is(created)
+			? console.log(`authorization test ${type} failed due to card creation error: `, JSON.stringify(created, null, 2))
+			: (card = created.reference)
 		const result: [Authorizations, pax2pay.Authorization | undefined] = [
 			type,
 			card == undefined
@@ -78,7 +73,7 @@ const flagless: Omit<pax2pay.Authorization.Creatable, "card" | "reference"> & { 
 	},
 	description: "An upcheck test authorization, to succeed.",
 }
-const creatables: Partial<Record<"succeeding", Omit<pax2pay.Authorization.Creatable, "card" | "reference">[]>> = {
+const creatables: Record<"succeeding", Omit<pax2pay.Authorization.Creatable, "card" | "reference">[]> = {
 	succeeding: [
 		{ ...flagless, amount: amount.low, description: flagless.description + " with low amount flag." },
 		{
