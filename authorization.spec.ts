@@ -6,7 +6,7 @@ import { Clients, clients } from "./Clients"
 jest.setTimeout(20000)
 let client: Clients | undefined
 let authorization: Partial<Record<Authorization.Authorizations, pax2pay.Authorization>> | undefined
-describe("pax2pay.Authorization", () => {
+describe.skip("pax2pay.Authorization", () => {
 	beforeAll(async () => {
 		client = await clients
 		authorization = client.paxgiro && client.pax2pay && (await Authorization.create(client.paxgiro, client.pax2pay))

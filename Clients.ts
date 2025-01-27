@@ -32,7 +32,7 @@ export class Clients {
 		clients.pax2pay = process.env.url ? pax2pay.Client.create(process.env.url, "") : undefined
 		clients.pax2pay && (clients.pax2pay.realm = "test")
 		/* cspell: disable-next-line */
-		clients.pax2pay && (clients.pax2pay.organization = "agpiPo0v")
+		clients.pax2pay && (clients.pax2pay.organization = "stress")
 		await clients.login()
 		return clients
 	}

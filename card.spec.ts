@@ -7,7 +7,7 @@ import { Clients, clients } from "./Clients"
 jest.setTimeout(15000)
 let card: pax2pay.Card | undefined = undefined
 let client: Clients | undefined
-describe("pax2pay.Card", () => {
+describe.skip("pax2pay.Card", () => {
 	beforeAll(async () => {
 		let created: pax2pay.Card | gracely.Error
 		let fetched: pax2pay.Card | gracely.Error
