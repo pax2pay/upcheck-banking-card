@@ -1,10 +1,8 @@
 import { gracely } from "gracely"
-import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import { Card } from "./Card"
 import { Clients, clients } from "./Clients"
 
-jest.setTimeout(15000)
 let card: pax2pay.Card | undefined = undefined
 let client: Clients | undefined
 describe("pax2pay.Card", () => {

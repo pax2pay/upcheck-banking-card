@@ -1,9 +1,7 @@
-import "isomorphic-fetch"
 import { pax2pay } from "@pax2pay/model-banking"
 import { Authorization } from "./Authorization"
 import { Clients, clients } from "./Clients"
 
-jest.setTimeout(20000)
 let client: Clients | undefined
 let authorization: Partial<Record<Authorization.Authorizations, pax2pay.Authorization>> | undefined
 describe("pax2pay.Authorization", () => {
