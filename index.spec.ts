@@ -10,7 +10,7 @@ describe("library", () => {
 		client = await clients
 	})
 	it("paxgiro refunds", async () => {
-		const total = 1
+		const total = 50
 		const result = await refund(client, total)
 		// const successes = result.reduce((sum: number, value) => sum + (value == 200 ? 1 : 0), 0)
 		console.log("Refunded: ", result, " of ", total)
@@ -24,7 +24,7 @@ async function refund(clients: Clients | undefined, total: number): Promise<numb
 		const creatables = new Array(total).fill(0).map(() => ({
 			type: "refund",
 			id: "string",
-			batch: "20241211y7",
+			batch: "20250225y8",
 			card: (card as any).id + "Sq0o_qOR",
 			merchant: {
 				name: "paxair",
@@ -51,7 +51,7 @@ async function refund(clients: Clients | undefined, total: number): Promise<numb
 		})
 		const refunds = await response.json()
 		if (Array.isArray(refunds))
-			result = refunds.reduce((sum: number, value: any) => sum + (value.transaction?.status == "finalized" ? 1 : 0), 0)
+			result = refunds.reduce((sum: number, value: any) => sum + (value.status == "succeeded" ? 1 : 0), 0)
 		else
 			console.log("Refund failed: ", JSON.stringify(refunds, null))
 	} else
