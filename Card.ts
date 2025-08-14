@@ -4,7 +4,10 @@ import { pax2pay } from "@pax2pay/model-banking"
 export namespace Card {
 	export const currency = "GBP"
 	export async function create(client: pax2pay.Client, account?: string): Promise<pax2pay.Card | gracely.Error> {
-		return await client.cards.create(typeof account == "string" ? { ...creatable, account } : creatable)
+		const start = performance.now()
+		const card = await client.cards.create(typeof account == "string" ? { ...creatable, account } : creatable)
+		console.log(`Card creation took ${performance.now() - start} ms`)
+		return card
 	}
 	const keys = {
 		public: `MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv7LQNTjG1425nHqWSckzc3+0TuJTcUIWE+DM8nM5OlK49qYzsLBgR7H60fiVwIZ61rwlS3644V4Hg9CMdDCSb1A1kx7b3hrQOSykV6g/AP7y4RnTaE7kI/X8oh0oyS1WW1XC7F+5abaCfOracnqPNlVvCLAoSZjKAIp+oPBBqSP3Y5dfZEgk7bS+YF7Py2nY1GnXbfYOwKc3PIXiMkZkDzWIKY4w+bC/HH8XUVd/3FWnNfqLViHHHn6Qqmy4McxvTtPIAGWdwcPD3b7MimcclXcj3H+3v/EgV+Kb/rbdrmMQzZjOS5d7Q0OsChVNfzrZQwRMHJY6Jl3xzVyfDV/IPwIDAQAB`,
