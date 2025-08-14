@@ -24,6 +24,7 @@ export class Clients {
 	}
 
 	static async open(): Promise<Clients> {
+		const start = performance.now()
 		const clients = new Clients()
 		clients.paxgiro =
 			process.env.paxgiroUrl && process.env.paxgiroAuth
@@ -34,6 +35,7 @@ export class Clients {
 		/* cspell: disable-next-line */
 		clients.pax2pay && (clients.pax2pay.organization = "agpiPo0v")
 		await clients.login()
+		console.log(`Clients opened in ${performance.now() - start} ms`)
 		return clients
 	}
 }
