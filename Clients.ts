@@ -9,16 +9,13 @@ export class Clients {
 	paxgiro?: http.Client
 	constructor() {}
 	async login(): Promise<boolean> {
-		const key = await this.pax2pay?.userwidgets("https://user.pax2pay.app", "https://dash.pax2pay.app").me.login({
-			user: process.env.email ?? "",
-			password: process.env.password ?? "",
-		})
+		const key = (await this.pax2pay?.me.login(process.env.email ?? "", process.env.password ?? "", "test")) as any as string | gracely.Error | undefined
 		if (gracely.Error.is(key) || !key)
 			return false
 		else {
-			this.token = key.token
-			this.paxgiro && (this.paxgiro.key = key.token)
-			this.pax2pay && (this.pax2pay.key = key.token)
+			this.token = key
+			this.paxgiro && (this.paxgiro.key = key)
+			this.pax2pay && (this.pax2pay.key = key)
 			return true
 		}
 	}
