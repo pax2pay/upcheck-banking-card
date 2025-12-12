@@ -1,86 +1,99 @@
 version: 2.1
-default: &default
-  working_directory: ~/repo
 orbs:
-  node: circleci/node@5.0.2
-  slack: circleci/slack@4.12.1
-commands:
-  prepare:
-    description: "Prepare working directory"
+  node: circleci/node@5.1.0
+  slack: circleci/slack@4.12.5
+parameters:
+  node-version:
+    type: string
+    default: "16.14"
+executors:
+  default-node:
+    docker:
+      - image: cimg/node:<< pipeline.parameters.node-version >>
+    working_directory: ~/repo
+jobs:
+  test-pax2pay-banking-card-api:
+    executor: default-node
+    parameters:
+      notification_mode:
+        type: enum
+        enum: ["mute", "quiet", "notify"]
+        default: "mute"
     steps:
       - checkout
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - run: npm install
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-  test-pax2pay-banking-card-api:
-    description: "Pax2pay banking card API tests"
-    steps:
-      - prepare
-      - run: mkdir -p workspace
+      - node/install-packages:
+          pkg-manager: npm
       - run:
           name: Run Pax2pay banking card API tests
           command: |
-            if npm run test --maxWorkers=2 &> workspace/output ; then
-              echo 'export TESTS_PASS=true' >> $BASH_ENV
-            else
-              echo 'export TESTS_PASS=false' >> $BASH_ENV
-            fi
+             set -o pipefail
+             npm run test -- --maxWorkers=2 --no-color --reporter=default --reporter=junit --outputFile=reports/junit.xml | tee test_output.txt
+      - store_test_results:
+          path: reports
       - run:
-          name: Print output
-          command: cat workspace/output
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - output
-      - run:
-          name: Return exit code
+          name: Prepare Slack Log
+          when: on_fail
           command: |
-            if "$TESTS_PASS" == "true" ; then
-              exit 0
-            else
-              exit 1
-            fi
-jobs:
-   pax2pay-banking-card-api-mute:
-    executor: node/default
-    <<: *default
-    steps:
-      - test-pax2pay-banking-card-api
-      - attach_workspace:
-          at: workspace
-   pax2pay-banking-card-api-quiet:
-    executor: node/default
-    <<: *default
-    steps:
-      - test-pax2pay-banking-card-api
-      - attach_workspace:
-          at: workspace
-      - slack/notify:
-          event: fail
-          mentions: '@here'
-          template: basic_fail_1
-   pax2pay-banking-card-api-notify:
-    executor: node/default
-    <<: *default
-    steps:
-      - test-pax2pay-banking-card-api
-      - attach_workspace:
-          at: workspace
-      - slack/notify:
-          event: fail
-          mentions: '@here'
-          template: basic_fail_1
-      - slack/notify:
-          event: pass
-          template: basic_success_1
+            # Grab the last 40 lines (The Vitest/Jest summary graph)
+            # Clean it up for JSON
+            TAIL_LOG=$(tail -n 40 test_output.txt | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}')
+            echo "export SLACK_LOGS=\"$TAIL_LOG\"" >> $BASH_ENV
+      - when:
+          condition:
+            or:
+              - equal: [ quiet, << parameters.notification_mode >> ]
+              - equal: [ notify, << parameters.notification_mode >> ]
+          steps:
+            - slack/notify:
+                event: fail
+                mentions: '@here'
+                custom: |
+                  {
+                    "blocks": [
+                      {
+                        "type": "header",
+                        "text": {
+                          "type": "plain_text",
+                          "text": "Tests Failed :rotating_light:",
+                          "emoji": true
+                        }
+                      },
+                      {
+                        "type": "section",
+                        "text": {
+                          "type": "mrkdwn",
+                          "text": "```${SLACK_LOGS}```"
+                        }
+                      },
+                      {
+                        "type": "actions",
+                        "elements": [
+                          {
+                            "type": "button",
+                            "text": {
+                              "type": "plain_text",
+                              "text": "View Dashboard Graphs"
+                            },
+                            "url": "${CIRCLE_BUILD_URL}",
+                            "style": "primary"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+
+      - when:
+          condition:
+             equal: [ notify, << parameters.notification_mode >> ]
+          steps:
+            - slack/notify:
+                event: pass
+                template: basic_success_1
 workflows:
+  build:
+    jobs:
+      - test-pax2pay-banking-card-api:
+          notification_mode: mute
   pax2pay-banking-card:
     triggers:
       - schedule:
@@ -89,17 +102,13 @@ workflows:
             branches:
               only: master
       - schedule:
-          cron: "37 00-12 * * *"
-          filters:
-            branches:
-              only: master
-      - schedule:
-          cron: "37 14-23 * * *"
+          cron: "37 00-12,14-23 * * *"
           filters:
             branches:
               only: master
     jobs:
-      - pax2pay-banking-card-api-quiet
+      - test-pax2pay-banking-card-api:
+          notification_mode: quiet
   daily:
     triggers:
       - schedule:
@@ -108,7 +117,5 @@ workflows:
             branches:
               only: master
     jobs:
-      - pax2pay-banking-card-api-notify
-  build:
-    jobs:
-      - pax2pay-banking-card-api-mute
+      - test-pax2pay-banking-card-api:
+          notification_mode: notify
