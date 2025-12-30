@@ -1,9 +1,11 @@
 version: 2.1
 default: &default
   working_directory: ~/repo
+
 orbs:
-  node: circleci/node@5.0.2
-  slack: circleci/slack@4.12.1
+  node: circleci/node@7.2.1
+  slack: circleci/slack@6.1.2
+
 commands:
   prepare:
     description: "Prepare working directory"
@@ -11,14 +13,14 @@ commands:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
       - run: npm install
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
+
   test-pax2pay-banking-card-api:
     description: "Pax2pay banking card API tests"
     steps:
@@ -27,7 +29,7 @@ commands:
       - run:
           name: Run Pax2pay banking card API tests
           command: |
-            if npm run test --maxWorkers=2 &> workspace/output ; then
+            if npm run test -- --no-color &> workspace/output ; then
               echo 'export TESTS_PASS=true' >> $BASH_ENV
             else
               echo 'export TESTS_PASS=false' >> $BASH_ENV
@@ -47,54 +49,118 @@ commands:
             else
               exit 1
             fi
+
+  format-log-for-slack:
+    description: "Reads the output file and escapes it for Slack JSON"
+    steps:
+      - run:
+          name: Format Log for Slack
+          when: on_fail
+          command: |
+            node -e '
+              const fs = require("fs");
+              const util = require("util");
+              try {
+                const log = fs.readFileSync("workspace/output", "utf8");
+                const sliced = log.slice(log.indexOf(" ❯ index.spec.ts"));
+                const escapedLog = JSON.stringify(util.stripVTControlCharacters(sliced)).slice(1, -1);
+                fs.appendFileSync(process.env.BASH_ENV, `export SLACK_LOG_OUTPUT="${escapedLog}"\n`);
+                escapedLog.includes("Error: Test timed out") && fs.appendFileSync(process.env.BASH_ENV, `export SLACK_LOG_TIMEOUT="⏳ Timed Out"\n`);
+              } catch (e) {
+                console.error("Failed to format log:", e);
+              }
+            '
+
+  notify-on-failure:
+    description: "Formats logs and sends failure notifications to Slack"
+    steps:
+      - format-log-for-slack
+      - slack/notify:
+          event: fail
+          mentions: '@here'
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚨 Tests Failed: ${CIRCLE_JOB} ${SLACK_LOG_TIMEOUT}",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*<${CIRCLE_BUILD_URL}|View Full CircleCI Logs>*"
+                  }
+                }
+              ]
+            }
+          thread_id: "anything"
+      - slack/notify:
+          event: fail
+          mentions: '@here'
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "```${SLACK_LOG_OUTPUT}```"
+                  }
+                }
+              ]
+            }
+          thread_id: "anything"
+
 jobs:
-   pax2pay-banking-card-api-mute:
+  pax2pay-banking-card-api-mute:
     executor: node/default
     <<: *default
     steps:
       - test-pax2pay-banking-card-api
       - attach_workspace:
           at: workspace
-   pax2pay-banking-card-api-quiet:
+
+  pax2pay-banking-card-api-quiet:
     executor: node/default
     <<: *default
     steps:
       - test-pax2pay-banking-card-api
       - attach_workspace:
           at: workspace
-      - slack/notify:
-          event: fail
-          mentions: '@here'
-          template: basic_fail_1
-   pax2pay-banking-card-api-notify:
+      - notify-on-failure
+
+  pax2pay-banking-card-api-notify:
     executor: node/default
     <<: *default
     steps:
       - test-pax2pay-banking-card-api
       - attach_workspace:
           at: workspace
-      - slack/notify:
-          event: fail
-          mentions: '@here'
-          template: basic_fail_1
+      - notify-on-failure
       - slack/notify:
           event: pass
           template: basic_success_1
+
 workflows:
   pax2pay-banking-card:
     triggers:
       - schedule:
-          cron: "7,17,27,47,57 * * * *"
+          cron: "2,12,22,42,52 * * * *"
           filters:
             branches:
               only: master
       - schedule:
-          cron: "37 00-12 * * *"
+          cron: "32 00-12 * * *"
           filters:
             branches:
               only: master
       - schedule:
-          cron: "37 14-23 * * *"
+          cron: "32 14-23 * * *"
           filters:
             branches:
               only: master
@@ -103,7 +169,7 @@ workflows:
   daily:
     triggers:
       - schedule:
-          cron: "37 13 * * *"
+          cron: "32 13 * * *"
           filters:
             branches:
               only: master
