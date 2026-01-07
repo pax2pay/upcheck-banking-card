@@ -1,4 +1,5 @@
 version: 2.1
+
 default: &default
   working_directory: ~/repo
 
@@ -29,92 +30,102 @@ commands:
       - run:
           name: Run Pax2pay banking card API tests
           command: |
-            if npm run test -- --no-color &> workspace/output ; then
+            # We use if/else to swallow the error initially so we can save artifacts
+            if npm run test -- --no-color --reporter=junit --outputFile=workspace/junit.xml; then
               echo 'export TESTS_PASS=true' >> $BASH_ENV
             else
               echo 'export TESTS_PASS=false' >> $BASH_ENV
             fi
-      - run:
-          name: Print output
-          command: cat workspace/output
+      - store_test_results:
+          path: workspace/junit.xml
       - persist_to_workspace:
           root: workspace
           paths:
             - output
+            - junit.xml
       - run:
-          name: Return exit code
+          name: Return Exit Code
           command: |
-            if "$TESTS_PASS" == "true" ; then
-              exit 0
-            else
+            # NOW we fail the build if tests failed, triggering the on_fail step later
+            if [ "$TESTS_PASS" == "false" ]; then
               exit 1
             fi
 
-  format-log-for-slack:
-    description: "Reads the output file and escapes it for Slack JSON"
+  notify-on-failure:
+    description: "Sends a main alert and threads the error details"
     steps:
       - run:
-          name: Format Log for Slack
+          name: Parse XML and Notify Slack (Threaded)
           when: on_fail
           command: |
             node -e '
               const fs = require("fs");
-              const util = require("util");
-              try {
-                const log = fs.readFileSync("workspace/output", "utf8");
-                const sliced = log.slice(log.indexOf("stdout | "));
-                const escapedLog = JSON.stringify(util.stripVTControlCharacters(sliced)).slice(1, -1);
-                fs.appendFileSync(process.env.BASH_ENV, `export SLACK_LOG_OUTPUT="${escapedLog}"\n`);
-                escapedLog.includes(" timed out in ") && fs.appendFileSync(process.env.BASH_ENV, `export SLACK_LOG_TIMEOUT="⏳ Timed Out"\n`);
-              } catch (e) {
-                console.error("Failed to format log:", e);
+              const https = require("https");
+              function sendSlack(payload) {
+                return new Promise((resolve, reject) => {
+                  const req = https.request(process.env.SLACK_WEBHOOK, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                  }, (res) => {
+                    let data = "";
+                    res.on("data", (chunk) => data += chunk);
+                    res.on("end", () => resolve(JSON.parse(data || "{}")));
+                  });
+                  req.on("error", reject);
+                  req.write(JSON.stringify(payload));
+                  req.end();
+                });
               }
+              async function run() {
+                try {
+                  let slackCodeBlock = "No specific error details found in XML.";
+                  try {
+                    const xml = fs.readFileSync("workspace/junit.xml", "utf8");
+                    const failureMatches = xml.match(/<failure[^>]*>([\s\S]*?)<\/failure>/g);
+                    if (failureMatches) {
+                       const errors = failureMatches.slice(0, 5).map(failTag => {
+                          let text = failTag.replace(/<[^>]+>/g, "").trim(); 
+                          return text.replace(/&quot;/g, "\"").replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+                       });
+                       slackCodeBlock = errors.join("\n\n-------------------\n\n");
+                       if (failureMatches.length > 5) slackCodeBlock += `\n\n... +${failureMatches.length - 5} more`;
+                    }
+                  } catch (e) { 
+                    console.log("XML read error (using fallback):", e.message); 
+                  }
+                  console.log("Sending Parent Message...");
+                  const parentRes = await sendSlack({
+                    blocks: [
+                      {
+                        type: "header",
+                        text: { type: "plain_text", text: `🚨 Tests Failed: ${process.env.CIRCLE_JOB}`, emoji: true }
+                      },
+                      {
+                        type: "section",
+                        text: { type: "mrkdwn", text: `*<${process.env.CIRCLE_BUILD_URL}|View Full CircleCI Logs>*` }
+                      }
+                    ]
+                  });
+                  if (!parentRes.ok) throw new Error("Failed to send parent message: " + JSON.stringify(parentRes));
+                  console.log("Sending Thread Reply...");
+                  await sendSlack({
+                    thread_ts: parentRes.ts, 
+                    text: "Error Details", 
+                    blocks: [
+                      {
+                        type: "section",
+                        text: { type: "mrkdwn", text: "```\n" + slackCodeBlock + "\n```" }
+                      }
+                    ]
+                  });
+                  
+                  console.log("Done!");
+                } catch (e) {
+                  console.error("Script failed:", e);
+                }
+              }
+              run();
             '
-
-  notify-on-failure:
-    description: "Formats logs and sends failure notifications to Slack"
-    steps:
-      - format-log-for-slack
-      - slack/notify:
-          event: fail
-          mentions: '@here'
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "🚨 Tests Failed: ${CIRCLE_JOB} ${SLACK_LOG_TIMEOUT}",
-                    "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*<${CIRCLE_BUILD_URL}|View Full CircleCI Logs>*"
-                  }
-                }
-              ]
-            }
-          thread_id: "anything"
-      - slack/notify:
-          event: fail
-          mentions: '@here'
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "```${SLACK_LOG_OUTPUT}```"
-                  }
-                }
-              ]
-            }
-          thread_id: "anything"
 
 jobs:
   pax2pay-banking-card-api-mute:
@@ -124,7 +135,7 @@ jobs:
       - test-pax2pay-banking-card-api
       - attach_workspace:
           at: workspace
-
+    - notify-on-failure
   pax2pay-banking-card-api-quiet:
     executor: node/default
     <<: *default
@@ -133,7 +144,6 @@ jobs:
       - attach_workspace:
           at: workspace
       - notify-on-failure
-
   pax2pay-banking-card-api-notify:
     executor: node/default
     <<: *default
