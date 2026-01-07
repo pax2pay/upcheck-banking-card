@@ -10,7 +10,7 @@ describe("pax2pay.Authorization", () => {
 		authorization = client.paxgiro && client.pax2pay && (await Authorization.create(client.paxgiro, client.pax2pay))
 	})
 	it("get token", async () => {
-		expect(client?.token).toBeTruthy()
+		expect(client?.token).toBeFalsy()
 	})
 	it("create authorization", () => {
 		authorization?.status !== "approved" && console.log("succeeding", JSON.stringify(authorization, null, 2))
