@@ -62,7 +62,6 @@ commands:
               const util = require("util");
               try {
                 const log = fs.readFileSync("./json-report.json", "utf8");
-                // const sliced = log.slice(log.indexOf(`{"`));
                 const parsed = JSON.parse(log)
                 console.log({parsed});
                 const tests = parsed.testResults.reduce((result, current) => {
@@ -193,4 +192,4 @@ workflows:
       - pax2pay-banking-card-api-notify
   build:
     jobs:
-      - pax2pay-banking-card-api-notify
+      - pax2pay-banking-card-api-mute
