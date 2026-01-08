@@ -193,4 +193,4 @@ workflows:
       - pax2pay-banking-card-api-notify
   build:
     jobs:
-      - pax2pay-banking-card-api-mute
+      - pax2pay-banking-card-api-notify
