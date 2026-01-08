@@ -42,7 +42,7 @@ describe("pax2pay.Card", () => {
 				"\nflaw: ",
 				JSON.stringify(pax2pay.Card.type.flaw(updated), null, 2)
 			)
-		expect(!pax2pay.Card.type.is(updated)).toBeTruthy()
+		expect(pax2pay.Card.type.is(updated)).toBeTruthy()
 		expect(updated && "limit" in updated && updated.limit[1]).toEqual(amount)
 	})
 })
