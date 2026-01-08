@@ -65,7 +65,10 @@ commands:
                 const sliced = log.slice(log.indexOf(`{"`));
                 const parsed = JSON.parse(sliced)
                 console.log({parsed});
-                const tests = parsed.testResults[0].assertionResults
+                const tests = parsed.testResults.reduce((result, current) => {
+                  result.push(...current.assertionResults);
+                  return result;
+                }, []);
                 console.log({tests});
                 tests.forEach(o => {
                   (o.failureMessages = o.failureMessages.map(m => m.slice(0, m.indexOf("\n    at"))));
@@ -190,4 +193,4 @@ workflows:
       - pax2pay-banking-card-api-notify
   build:
     jobs:
-      - pax2pay-banking-card-api-notify
+      - pax2pay-banking-card-api-mute
