@@ -30,11 +30,7 @@ describe("pax2pay.Card", () => {
 		else if (!card)
 			console.log("card.update test failed due to global variable card being undefined.")
 		else if (
-			!pax2pay.Card.type.is(
-				(updated = await client.pax2pay.cards.update(card.id, {
-					limit: [Card.currency, amount],
-				}))
-			)
+			!pax2pay.Card.type.is((updated = await client.pax2pay.cards.update(card.id, { limit: [Card.currency, amount] })))
 		)
 			console.log(
 				"card.update failed with: ",
