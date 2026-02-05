@@ -27,11 +27,13 @@ export namespace Authorization {
 		pax2payClient: pax2pay.Client
 	): Promise<pax2pay.Authorization | undefined> {
 		let card: string | undefined = undefined
-		const start = performance.now()
+		const startCard = performance.now()
 		const created = await Card.create(pax2payClient, undefined)
+		console.log(`Card Creation for authorization took ${performance.now() - startCard} ms`)
 		!pax2pay.Card.type.is(created)
 			? console.log("Authorization test failed due to card creation error: ", JSON.stringify(created, null, 2))
 			: (card = created.reference)
+		const startAuthorization = performance.now()
 		const result: pax2pay.Authorization | undefined =
 			card == undefined
 				? undefined
@@ -39,7 +41,7 @@ export namespace Authorization {
 						...creatables[~~(currentMinute / (60 / creatables.length))],
 						card,
 				  })
-		console.log(`Authorization took ${performance.now() - start} ms`)
+		console.log(`Authorization took ${performance.now() - startAuthorization} ms`)
 		return result
 	}
 }
