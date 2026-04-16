@@ -13,9 +13,9 @@ export class Clients {
 			| string
 			| gracely.Error
 			| undefined
-		if (gracely.Error.is(key) || !key)
+		if (gracely.Error.is(key) || !key) {
 			return false
-		else {
+		} else {
 			this.token = key
 			this.paxgiro && (this.paxgiro.key = key)
 			this.pax2pay && (this.pax2pay.key = key)

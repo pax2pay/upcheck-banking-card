@@ -1,6 +1,5 @@
 {
 	"files.exclude": {
-		".eslint*": true,
 		".editorconfig": true,
 		".npm*": true,
 		".vscode*": true,
@@ -26,8 +25,7 @@
 	},
 	"eslint.format.enable": true,
 	"eslint.lintTask.enable": true,
-	"javascript.format.enable": false,
-	"typescript.format.enable": false,
+	"js/ts.format.enabled": false,
 	"cSpell.words": [
 		"authly",
 		"cloudly",
@@ -45,7 +43,7 @@
 		"paxgiro",
 		"persistly",
 		"prettierx",
-		"selectivly",
+		"selectively",
 		"servly",
 		"servly-azure",
 		"smoothly",

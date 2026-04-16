@@ -40,7 +40,7 @@ export namespace Authorization {
 				: await client.post<pax2pay.Authorization>("/authorization", {
 						...creatables[~~(currentMinute / (60 / creatables.length))],
 						card,
-				  })
+					})
 		console.log(`Authorization took ${performance.now() - startAuthorization} ms`)
 		return result
 	}
