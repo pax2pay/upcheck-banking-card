@@ -43,8 +43,9 @@
 		"vitest": "3.2.4"
 	},
 	"dependencies": {
-		"@pax2pay/model-banking": "0.1.558",
+		"@pax2pay/model-banking": "0.1.608",
 		"cloudly-http": "^0.1.7",
-		"gracely": "2.0.8"
+		"gracely": "2.0.8",
+		"isoly": "2.3.11"
 	}
 }
