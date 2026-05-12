@@ -36,8 +36,9 @@ describe("pax2pay.Card", () => {
 			console.log(
 				"card.update failed with: ",
 				JSON.stringify(updated, null, 2),
-				"\nflaw: ",
-				JSON.stringify(pax2pay.Card.type.flaw(updated), null, 2)
+				...(!!updated && typeof updated === "object" && "scheme" in updated
+					? ["\nflaw: ", JSON.stringify(pax2pay.Card.type.flaw(updated), null, 2)]
+					: [])
 			)
 		}
 		expect(pax2pay.Card.type.is(updated)).toBeTruthy()
