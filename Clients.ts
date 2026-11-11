@@ -10,9 +10,7 @@ export class Clients {
 	constructor() {}
 	async login(): Promise<boolean> {
 		const key = (await this.pax2pay?.me.login(process.env.email ?? "", process.env.password ?? "", "test")) as any as
-			| string
-			| gracely.Error
-			| undefined
+			string | gracely.Error | undefined
 		if (gracely.Error.is(key) || !key) {
 			return false
 		} else {
