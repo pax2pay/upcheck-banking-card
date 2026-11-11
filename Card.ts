@@ -21,7 +21,6 @@ export namespace Card {
 		details: { expiry: [nextYear, 12], holder: "Upcheck" },
 		limit: [currency, 9000],
 		preset: "test-ta-pg-200",
-		rules: [],
 		key: keys.public,
 	}
 }

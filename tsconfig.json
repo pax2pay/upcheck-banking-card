@@ -7,9 +7,7 @@
 			"webworker"
 		],
 		"allowJs": true,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"noImplicitAny": true,
+		"strict": true,
 		"removeComments": true,
 		"preserveConstEnums": true,
 		"forceConsistentCasingInFileNames": true,
@@ -17,9 +15,14 @@
 		"strictNullChecks": true,
 		"sourceMap": true,
 		"outDir": "dist",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
+		"paths": {
+			"isly/dist/*": [
+				"./node_modules/isly/dist/*"
+			]
+		},
 		"types": [
 			"vitest/globals",
 			"node"
