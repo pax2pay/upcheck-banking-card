@@ -5,16 +5,18 @@ import * as dotenv from "dotenv"
 
 export class Clients {
 	token?: string
+	user?: pax2pay.Client
 	pax2pay?: pax2pay.Client & Record<string, any>
 	paxgiro?: http.Client
 	constructor() {}
 	async login(): Promise<boolean> {
-		const key = await this.pax2pay?.me.login(process.env.email ?? "", process.env.password ?? "", "test")
+		const key = await this.user?.me.login(process.env.email ?? "", process.env.password ?? "", "test")
 		if (gracely.Error.is(key) || !key) {
 			return false
 		} else {
 			this.token = key
 			this.paxgiro && (this.paxgiro.key = key)
+			this.user && (this.user.key = key)
 			this.pax2pay && (this.pax2pay.key = key)
 			return true
 		}
@@ -23,13 +25,11 @@ export class Clients {
 	static async open(): Promise<Clients> {
 		const start = performance.now()
 		const clients = new Clients()
-		clients.paxgiro =
-			process.env.paxgiroUrl && process.env.paxgiroAuth
-				? new http.Client(process.env.paxgiroUrl, process.env.paxgiroAuth)
-				: undefined
-		clients.pax2pay = process.env.url ? pax2pay.Client.create(process.env.url, "") : undefined
+		clients.paxgiro = process.env.paysUrl ? new http.Client(process.env.paysUrl, "") : undefined
+		clients.user = process.env.userUrl ? pax2pay.Client.create(process.env.userUrl, "") : undefined
+		clients.user && (clients.user.realm = "test")
+		clients.pax2pay = process.env.paysUrl ? pax2pay.Client.create(process.env.paysUrl, "") : undefined
 		clients.pax2pay && (clients.pax2pay.realm = "test")
-		/* cspell: disable-next-line */
 		clients.pax2pay && (clients.pax2pay.organization = "upcheck")
 		await clients.login()
 		console.log(`Clients opened in ${performance.now() - start} ms`)
