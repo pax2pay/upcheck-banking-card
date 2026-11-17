@@ -1,9 +1,8 @@
-import { pax2pay } from "@pax2pay/model-banking"
 import { Authorization } from "./Authorization"
 import { Clients, clients } from "./Clients"
 
 let client: Clients | undefined
-let authorization: pax2pay.Authorization | undefined
+let authorization: any
 describe("pax2pay.Authorization", () => {
 	beforeAll(async () => {
 		console.log("pax2pay.Authorization.beforeAll started.")
@@ -18,8 +17,8 @@ describe("pax2pay.Authorization", () => {
 		expect(client?.token).toBeTruthy()
 	})
 	it("create authorization", () => {
-		authorization?.status !== "approved" && console.log("succeeding", JSON.stringify(authorization, null, 2))
-		expect(pax2pay.Authorization.type.is(authorization))
-		expect(authorization?.status).toEqual("approved")
+		authorization?.verdict !== "approved" && console.log("succeeding", JSON.stringify(authorization, null, 2))
+		expect(authorization?.verdict).toEqual("approved")
+		expect(authorization?.outcome).toEqual("succeeded")
 	})
 })

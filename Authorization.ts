@@ -25,22 +25,18 @@ export namespace Authorization {
 		currentMinute: number,
 		client: http.Client,
 		pax2payClient: pax2pay.Client
-	): Promise<pax2pay.Authorization | undefined> {
-		let card: string | undefined = undefined
+	): Promise<any> {
+		let card: { id: string; scheme: string } | undefined = undefined
 		const startCard = performance.now()
 		const created = await Card.create(pax2payClient, undefined)
 		console.log(`Card Creation for authorization took ${performance.now() - startCard} ms`)
 		!pax2pay.Card.type.is(created)
 			? console.log("Authorization test failed due to card creation error: ", JSON.stringify(created, null, 2))
-			: (card = created.reference)
+			: (card = { id: created.id, scheme: created.scheme })
 		const startAuthorization = performance.now()
-		const result: pax2pay.Authorization | undefined =
-			card == undefined
-				? undefined
-				: await client.post<pax2pay.Authorization>("/authorization", {
-						...creatables[~~(currentMinute / (60 / creatables.length))],
-						card,
-					})
+		const { amount, description } = creatableInputs[~~(currentMinute / (60 / creatableInputs.length))]
+		const result =
+			card == undefined ? undefined : await client.post("/authorize", createCreatable(card, amount, description))
 		console.log(`Authorization took ${performance.now() - startAuthorization} ms`)
 		return result
 	}
@@ -56,36 +52,38 @@ const amount: Record<
 	veryHighOrganization: [Card.currency, 2000],
 	veryHighRealm: [Card.currency, 2600],
 }
-const flagless: Omit<Authorization.Creatable, "card" | "reference"> & { preset: string } = {
-	amount: amount.normal,
-	preset: "test-ta-pg-200",
-	merchant: {
-		name: "paxair",
-		id: "abcd1234",
-		category: "4511",
-		country: "GB",
-		city: "upcheck town",
-		zip: "12345",
-		address: "Streetname 1, 12345 Towncity",
-	},
-	acquirer: {
-		/* cspell: disable-next-line */
-		id: "2345erty",
-		number: "1351858913568",
-		country: "GB",
-	},
-	description: "An upcheck test authorization, to succeed.",
-}
-const creatables: Omit<Authorization.Creatable, "card" | "reference">[] = [
-	{ ...flagless, amount: amount.low, description: flagless.description + " with low amount flag." },
+const creatableInputs: { amount: pax2pay.Amount; description: string }[] = [
+	{ amount: amount.low, description: "An upcheck test authorization, to succeed. with low amount flag." },
 	{
-		...flagless,
 		amount: amount.highOrganization,
-		description: flagless.description + " with high organization amount flag.",
+		description: "An upcheck test authorization, to succeed. with high organization amount flag.",
 	},
-	{
-		...flagless,
-		amount: amount.highRealm,
-		description: flagless.description + " with high realm amount flag.",
-	},
+	{ amount: amount.highRealm, description: "An upcheck test authorization, to succeed. with high realm amount flag." },
 ]
+function createCreatable(card: { id: string; scheme: string }, amount: pax2pay.Amount, description: string) {
+	return {
+		amount: amount[1],
+		counterpart: {
+			category: "4511",
+			city: "Breathing",
+			country: "GB",
+			name: "paxair",
+			type: "merchant",
+			id: "abcd1234",
+			address: "Streetname 1, 12345 Towncity",
+			acquirer: {
+				/* cspell: disable-next-line */
+				id: "2345erty",
+				retrievalReferenceNumber: "120600001965",
+				systemTraceAuditNumber: "494868",
+				country: "GB",
+			},
+		},
+		currency: amount[0],
+		description,
+		instrument: { id: card.id, type: "card" },
+		rail: card.scheme,
+		reference: crypto.randomUUID(),
+		type: "outgoing",
+	}
+}
