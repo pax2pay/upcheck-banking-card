@@ -25,10 +25,10 @@ export class Clients {
 	static async open(): Promise<Clients> {
 		const start = performance.now()
 		const clients = new Clients()
-		clients.paxgiro = process.env.paysUrl ? new http.Client(process.env.paysUrl, "") : undefined
-		clients.user = process.env.userUrl ? pax2pay.Client.create(process.env.userUrl, "") : undefined
+		clients.paxgiro = new http.Client("https://sandbox.pays.pax2pay.app/hook/pseudopay", "")
+		clients.user = pax2pay.Client.create("https://banking.pax2pay.app", "")
 		clients.user && (clients.user.realm = "test")
-		clients.pax2pay = process.env.paysUrl ? pax2pay.Client.create(process.env.paysUrl, "") : undefined
+		clients.pax2pay = pax2pay.Client.create("https://sandbox.pays.pax2pay.app/api/legacy", "")
 		clients.pax2pay && (clients.pax2pay.realm = "test")
 		clients.pax2pay && (clients.pax2pay.organization = "upcheck")
 		await clients.login()
